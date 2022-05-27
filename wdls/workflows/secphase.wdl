@@ -1,7 +1,5 @@
 version 1.0 
 
-import "../tasks/merge_bams.wdl" as mergeBams_t
-
 workflow runSecPhase{
     input {
         File inputBam
