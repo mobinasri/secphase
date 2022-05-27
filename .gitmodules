@@ -1,4 +1,0 @@
-[submodule "secphase"]
-	path = secphase
-	url = https://github.com/mobinasri/secphase
-	branch = main
