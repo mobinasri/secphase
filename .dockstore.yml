@@ -6,3 +6,6 @@ workflows:
    -  name: CorrectBam
       subclass: WDL
       primaryDescriptorPath: /wdls/workflows/correct_bam.wdl
+   -  name: GetSecphasedReadIds
+      subclass: WDL
+      primaryDescriptorPath: /wdls/workflows/get_secphased_read_ids.wdl
