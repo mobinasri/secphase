@@ -22,7 +22,7 @@ task correctBam {
         Int memSize=8
         Int threadCount=8
         Int diskSize=512
-        String dockerImage="quay.io/masri2019/hpp_coverage:latest"
+        String dockerImage="mobinasri/secphase:v0.1"
         Int preemptible=2
     }
     command <<<

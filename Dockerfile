@@ -1,4 +1,4 @@
-FROM quay.io/masri2019/hpp_base:latest
+FROM mobinasri/bio_base:v0.1
 MAINTAINER Mobin Asri, masri@ucsc.edu
 
 RUN mkdir -p /home/apps

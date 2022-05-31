@@ -4,7 +4,7 @@ workflow runSecPhase{
     input {
         File inputBam
         File diploidAssemblyFastaGz
-        Boolean debugMode = true
+        Boolean debugMode = false
     }
     call sortByName{
          input:
@@ -53,7 +53,7 @@ task secphase {
         Int memSize=4
         Int threadCount=2
         Int diskSize=128
-        String dockerImage="quay.io/masri2019/hpp_coverage:latest"
+        String dockerImage="mobinasri/secphase:v0.1"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -101,7 +101,7 @@ task concatLogs {
         Int memSize=2
         Int threadCount=1
         Int diskSize=32
-        String dockerImage="quay.io/masri2019/hpp_coverage:latest"
+        String dockerImage="mobinasri/secphase:v0.1"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -142,7 +142,7 @@ task splitByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=512
-        String dockerImage="quay.io/masri2019/hpp_coverage:latest"
+        String dockerImage="mobinasri/secphase:v0.1"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -186,7 +186,7 @@ task sortByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=1024
-        String dockerImage="quay.io/masri2019/hpp_base:latest"
+        String dockerImage="mobinasri/secphase:v0.1"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -235,7 +235,7 @@ task sortByContig {
         Int memSize=8
         Int threadCount=4
         Int diskSize=128
-        String dockerImage="quay.io/masri2019/hpp_base:latest"
+        String dockerImage="mobinasri/secphase:v0.1"
         Int preemptible=2
         String zones="us-west2-a"
     }

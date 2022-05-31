@@ -1,0 +1,8 @@
+version: 1.2
+workflows:
+   -  name: Secphase
+      subclass: WDL
+      primaryDescriptorPath: /wdls/workflows/secphase.wdl
+   -  name: CorrectBam
+      subclass: WDL
+      primaryDescriptorPath: /wdls/workflows/correct_bam.wdl
