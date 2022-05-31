@@ -9,3 +9,6 @@ workflows:
    -  name: GetSecphasedReadIds
       subclass: WDL
       primaryDescriptorPath: /wdls/workflows/get_secphased_read_ids.wdl
+   -  name: WhatshapHaplotag 
+      subclass: WDL
+      primaryDescriptorPath: /wdls/workflows/whatshap_haplotag.wdl
