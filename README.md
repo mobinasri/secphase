@@ -92,7 +92,7 @@ samtools sort -n -@8 ${INPUT_DIR}/${BAM_PREFIX}.bam > ${INPUT_DIR}/${BAM_PREFIX}
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
 	mobinasri/secphase:v0.1 \
-	phase_reads -q -c -t10 -d 1e-4 -e 0.1 -b20 -m20 -s40 \
+	secphase -q -c -t10 -d 1e-4 -e 0.1 -b20 -m20 -s40 \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa > ${PHASING_OUT}.log
 
@@ -173,6 +173,8 @@ Note the default values for `--minReadLen` and `--minAlignmentLen` are both `5k`
 ### Workflows
 
 Each of the phasing and correction programs is wdlized separately. The phasing wdl file is named [`secphase.wdl`](https://dockstore.org/workflows/github.com/mobinasri/secphase/Secphase:v0.1?tab=info) and the correction wdl file is named [`correct_bam.wdl`](https://dockstore.org/my-workflows/github.com/mobinasri/secphase/CorrectBam). These links can be used for importing the workflows to Terra or running locally with cromwell.
+Some notes about the inputs to these workflows:
+- For `secphase.wdl` set `secphase.options` to `-q -c -t20 -d 1e-2 -e 0.1 -b20 -m10 -s20` for ONT-guppy4(and 5) data and change it to `-q -c -t10 -d 1e-4 -e 0.1 -b20 -m20 -s40` for HiFi data.
 
 ### Acknowledgements
 
