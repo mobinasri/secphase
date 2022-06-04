@@ -76,7 +76,7 @@ task secphase {
         samtools faidx asm.fa
 
         mkdir output
-        COMMAND=~{true="secphase_debug" false="phase_reads" debugMode}
+        COMMAND=~{true="secphase_debug" false="secphase" debugMode}
         ${COMMAND} ~{options} -i ~{bamFile} -f asm.fa 2> err.log > out.log || true
     >>>
     runtime {
