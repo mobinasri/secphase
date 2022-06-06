@@ -105,7 +105,7 @@ docker run \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa > ${OUTPUT_DIR}/${PHASING_OUT}.log
 ```
 
-`${PHASING_OUT}.log` conatins the names of the reads which secondary and primary alignments have to be swapped. 
+`${PHASING_OUT}.log` conatins the names of the reads whose secondary and primary alignments have to be swapped. 
 Here is an example of a record in the `${PHASING_OUT}.log`:
 
 ```
@@ -124,7 +124,7 @@ Based on the initial letter of each line we can indentify the correct phasing of
 ### How To Run The Correction Program
 
 To swap the pri/sec tags of the reads reported in `${PHASING_OUT}.log` and produce a modified bam file you can run the program  `correct_bam`.
-Again it is recommended to run it using the docker image `quay.io/masri2019/hpp_coverage:latest`.
+Again it is recommended to run it using the docker image `mobinasri/secphase:v0.1`.
 
 Here are the parameters `correct_bam` can accept:
 ```
