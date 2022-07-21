@@ -53,6 +53,9 @@ task correctBam {
             OPTIONS="${OPTIONS} --mapqTable ~{mapqTableText}"
         fi
 
+        # Create an empty file in case flagRemoveMultiplePrimary and flagRemoveSupplementary both are false
+        touch ${PREFIX}.excluded_read_ids.txt
+
         if [ -n "~{true="REMOVE" false="" flagRemoveMultiplePrimary}" ]
         then
             samtools view -F 0x904 ~{bam} | cut -f 1 | sort | uniq -c | awk '$1 > 1' | cut -f2 > ${PREFIX}.excluded_read_ids.txt 
