@@ -989,7 +989,8 @@ int main(int argc, char *argv[]){
 	bool consensus=false;
 	int threshold=10;
 	int min_q=20;
-	int prim_margin_q = 50;
+	int min_score = -50;
+	int prim_margin_q = 20;
 	int set_q=40;
 	double conf_d=1e-4;
 	double conf_e=0.1;
@@ -1033,6 +1034,9 @@ int main(int argc, char *argv[]){
 			case 'p':
 				prim_margin_q = atoi(optarg);
 				break;
+			case 'n':
+				min_score = atoi(optarg);
+				break;
                         default:
                                 if (c != 'h') fprintf(stderr, "[E::%s] undefined option %c\n", __func__, c);
 			help:
@@ -1048,7 +1052,8 @@ int main(int argc, char *argv[]){
 				fprintf(stderr, "         -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]\n");
 				fprintf(stderr, "         -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]\n");
 				fprintf(stderr, "         -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
-				fprintf(stderr, "         -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 50]");
+				fprintf(stderr, "         -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 20]");
+				fprintf(stderr, "         -n         Minimum consistency score of the selected secondary alignment [Default: -50]");
                                 return 1;
 		}
 	}
@@ -1126,7 +1131,7 @@ DEBUG_PRINT("\n@@ READ NAME: %s\n\t$ Number of alignments: %d\t Read l_qseq: %d\
 			}
 			if (alignments_len > 0){ // maybe the previous alignment was unmapped
 				// get the best alignment
-				int best_idx = get_best_record(alignments, alignments_len, prim_margin_q, min_q);
+				int best_idx = get_best_record(alignments, alignments_len, prim_margin_q, min_score);
 				bam1_t* best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
 				// write all alignments without any change if they are either chimeric or best alignment is primary
 				if(best &&
