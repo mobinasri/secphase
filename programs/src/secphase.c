@@ -999,7 +999,7 @@ int main(int argc, char *argv[]){
 	char* fastaPath;
    	char *program;
    	(program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-   	while (~(c=getopt(argc, argv, "i:p:f:qd:e:b:m:ct:s:h"))) {
+   	while (~(c=getopt(argc, argv, "i:p:f:qd:e:b:n:m:ct:s:h"))) {
 		switch (c) {
                         case 'i':
                                 inputPath = optarg;
@@ -1052,7 +1052,8 @@ int main(int argc, char *argv[]){
 				fprintf(stderr, "         -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]\n");
 				fprintf(stderr, "         -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]\n");
 				fprintf(stderr, "         -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
-				fprintf(stderr, "         -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 20]");
+				fprintf(stderr, "         -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 20]\n");
+				
 				fprintf(stderr, "         -n         Minimum consistency score of the selected secondary alignment [Default: -50]");
                                 return 1;
 		}
