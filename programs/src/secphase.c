@@ -983,29 +983,77 @@ void print_contigs(ptAlignment** alignments, int alignments_len, sam_hdr_t* h){
         }
 }
 
+static struct option long_options[] =
+{
+    {"inputBam", required_argument, NULL, 'i'},
+    {"inputFasta", required_argument, NULL, 'f'},
+    {"baq", no_argument, NULL, 'q'},
+    {"gapOpen", required_argument, NULL, 'd'},
+    {"gapExt", required_argument, NULL, 'e'},
+    {"bandwidth", required_argument, NULL, 'b'},
+    {"consensus", no_argument, NULL, 'c'},
+    {"indelThreshold", required_argument, NULL, 't'},
+    {"initQ", required_argument, NULL, 's'},
+    {"minQ", required_argument, NULL, 'm'},
+    {"primMarginScore", required_argument, NULL, 'p'},
+    {"minScore", required_argument, NULL, 'n'},
+    {"hifi", no_argument, NULL, 'x'},
+    {"ont", no_argument, NULL, 'y'},
+    {NULL, 0, NULL, 0}
+};
+
 int main(int argc, char *argv[]){
 	int c;
-	bool baq_flag=false;
-	bool consensus=false;
-	int threshold=10;
-	int min_q=20;
+	bool baq_flag = false;
+	bool consensus = false;
+	int threshold = 10;
+	int min_q = 20;
 	int min_score = -50;
 	int prim_margin_q = 20;
-	int set_q=40;
+	int set_q = 40;
 	double conf_d=1e-4;
 	double conf_e=0.1;
 	double conf_b=20;
 	char* inputPath;
 	char* fastaPath;
    	char *program;
+	bool preset_ont = false;
+	bool preset_hifi = false;
    	(program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-   	while (~(c=getopt(argc, argv, "i:p:f:qd:e:b:n:m:ct:s:h"))) {
+   	while (~(c=getopt(argc, argv, "i:p:f:qd:e:b:n:m:ct:s:xyh"))) {
 		switch (c) {
                         case 'i':
                                 inputPath = optarg;
                                 break;
 			case 'f':
 				fastaPath = optarg;
+				break;
+			case 'x':
+				preset_hifi = true;
+				baq_flag = true;
+			       	consensus = true;
+				threshold = 10; // indel size threshold
+			       	conf_d = 1e-4;
+			       	conf_e = 0.1;
+				conf_b = 20;
+			       	min_q = 10;
+			        set_q = 40;
+			       	prim_margin_q = 10;
+			        min_score = -50;
+				break;
+			case 'y':
+				preset_ont = true;
+				preset_hifi = true;
+                                baq_flag = true;
+                                consensus = true;
+                                threshold = 20; // indel size threshold
+                                conf_d = 1e-3;
+                                conf_e = 0.1;
+                                conf_b = 20;
+                                min_q = 10;
+                                set_q = 20;
+                                prim_margin_q = 10;
+                                min_score = -50;
 				break;
 			case 'q':
 				baq_flag = true;
@@ -1042,21 +1090,28 @@ int main(int argc, char *argv[]){
 			help:
                                 fprintf(stderr, "\nUsage: %s  -i <INPUT_BAM> -f <FASTA> \n", program);
                                 fprintf(stderr, "Options:\n");
-                                fprintf(stderr, "         -i         Input bam file\n");
-				fprintf(stderr, "         -f         Input fasta file\n");
-				fprintf(stderr, "         -q         Calculate BAQ [Default: false]\n");
-				fprintf(stderr, "         -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]\n");
-				fprintf(stderr, "         -e         Gap extension [Default: 0.1]\n");
-				fprintf(stderr, "         -b         DP bandwidth [Default: 20]\n");
-				fprintf(stderr, "         -c         Use consensus confident blocks [Default: false]\n");
-				fprintf(stderr, "         -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]\n");
-				fprintf(stderr, "         -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]\n");
-				fprintf(stderr, "         -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
-				fprintf(stderr, "         -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 20]\n");
+                                fprintf(stderr, "         --inputBam, -i         Input bam file\n");
+				fprintf(stderr, "         --inputFasta, -f         Input fasta file\n");
+				fprintf(stderr, "         --hifi, -f         hifi preset params [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p10 -n -50] (Only one of --hifi or --ont should be enabled)\n");
+				fprintf(stderr, "         --ont, -f         ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -n -50] (Only one of --hifi or --ont should be enabled) \n");
+				fprintf(stderr, "         --baq, -q         Calculate BAQ [Disabled by default]\n");
+				fprintf(stderr, "         --gapOpen, -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]\n");
+				fprintf(stderr, "         --gapExt, -e         Gap extension [Default: 0.1]\n");
+				fprintf(stderr, "         --bandwidth, -b         DP bandwidth [Default: 20]\n");
+				fprintf(stderr, "         --consensus, -c         Use consensus confident blocks [Disabled by default]\n");
+				fprintf(stderr, "         --indelThreshold, -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]\n");
+				fprintf(stderr, "         --initQ, -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]\n");
+				fprintf(stderr, "         --minQ, -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
+				fprintf(stderr, "         --primMarginScore, -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 20]\n");
 				
-				fprintf(stderr, "         -n         Minimum consistency score of the selected secondary alignment [Default: -50]");
+				fprintf(stderr, "         --minScore, -n         Minimum consistency score of the selected secondary alignment [Default: -50]\n");
                                 return 1;
 		}
+	}
+
+	if(preset_ont && preset_hifi){
+		fprintf(stderr, "Presets --hifi and --ont cannot be enabled at the same time. Select one of them!\n")
+		exit(0);
 	}
 
 	faidx_t* fai = fai_load(fastaPath);
