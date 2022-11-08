@@ -1110,7 +1110,7 @@ int main(int argc, char *argv[]){
 	}
 
 	if(preset_ont && preset_hifi){
-		fprintf(stderr, "Presets --hifi and --ont cannot be enabled at the same time. Select one of them!\n")
+		fprintf(stderr, "Presets --hifi and --ont cannot be enabled at the same time. Select one of them!\n");
 		exit(0);
 	}
 
