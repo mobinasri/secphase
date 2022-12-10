@@ -408,7 +408,7 @@ void calc_likelihood(stList* markers, ptAlignment** alignments){
 	}
 }
 
-int get_best_record(ptAlignment** alignments, int alignments_len, double prim_margin, double min_qv){
+int get_best_record(ptAlignment** alignments, int alignments_len, double prim_margin, double min_qv, double prim_margin_random){
 	assert(alignments_len > 0);
 	if (alignments_len == 1) return 0;
 	double max_qv = -DBL_MAX;
@@ -424,6 +424,10 @@ int get_best_record(ptAlignment** alignments, int alignments_len, double prim_ma
 			max_idx = i;
 			max_qv = alignments[i]->qv;
 		}
+	}
+	int rnd = rand() % 2; // 50% chance for rnd=0 (same for rnd=1)
+	if (abs(max_qv - prim_qv) < prim_margin_random){
+		return rnd == 0 ? prim_idx : max_idx; // if the scores were closer than prim_margin_random return one randomly
 	}
 	if (prim_idx == -1 || max_qv < (prim_qv + prim_margin) || max_qv < min_qv) return prim_idx;
 	else return max_idx;
@@ -996,6 +1000,7 @@ static struct option long_options[] =
     {"initQ", required_argument, NULL, 's'},
     {"minQ", required_argument, NULL, 'm'},
     {"primMarginScore", required_argument, NULL, 'p'},
+    {"primMarginRandom", required_argument, NULL, 'r'},
     {"minScore", required_argument, NULL, 'n'},
     {"hifi", no_argument, NULL, 'x'},
     {"ont", no_argument, NULL, 'y'},
@@ -1009,7 +1014,8 @@ int main(int argc, char *argv[]){
 	int threshold = 10;
 	int min_q = 20;
 	int min_score = -50;
-	int prim_margin_q = 20;
+	double prim_margin_score = 50;
+	double prim_margin_random = 50;
 	int set_q = 40;
 	double conf_d=1e-4;
 	double conf_e=0.1;
@@ -1020,7 +1026,7 @@ int main(int argc, char *argv[]){
 	bool preset_ont = false;
 	bool preset_hifi = false;
    	(program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-   	while (~(c=getopt(argc, argv, "i:p:f:qd:e:b:n:m:ct:s:xyh"))) {
+   	while (~(c=getopt_long(argc, argv, "i:p:f:qd:e:b:n:r:m:ct:s:xyh", long_options, NULL))) {
 		switch (c) {
                         case 'i':
                                 inputPath = optarg;
@@ -1038,12 +1044,12 @@ int main(int argc, char *argv[]){
 				conf_b = 20;
 			       	min_q = 10;
 			        set_q = 40;
-			       	prim_margin_q = 10;
+			       	prim_margin_score = 50;
+				prim_margin_random = 50;
 			        min_score = -50;
 				break;
 			case 'y':
 				preset_ont = true;
-				preset_hifi = true;
                                 baq_flag = true;
                                 consensus = true;
                                 threshold = 20; // indel size threshold
@@ -1052,7 +1058,8 @@ int main(int argc, char *argv[]){
                                 conf_b = 20;
                                 min_q = 10;
                                 set_q = 20;
-                                prim_margin_q = 10;
+                                prim_margin_score = 10;
+				prim_margin_random = 10;
                                 min_score = -50;
 				break;
 			case 'q':
@@ -1080,8 +1087,11 @@ int main(int argc, char *argv[]){
                                 min_q = atoi(optarg);
                                 break;
 			case 'p':
-				prim_margin_q = atoi(optarg);
+				prim_margin_score = atof(optarg);
 				break;
+			case 'r':
+                                prim_margin_random = atof(optarg);
+                                break;
 			case 'n':
 				min_score = atoi(optarg);
 				break;
@@ -1092,8 +1102,8 @@ int main(int argc, char *argv[]){
                                 fprintf(stderr, "Options:\n");
                                 fprintf(stderr, "         --inputBam, -i         Input bam file\n");
 				fprintf(stderr, "         --inputFasta, -f         Input fasta file\n");
-				fprintf(stderr, "         --hifi, -f         hifi preset params [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p10 -n -50] (Only one of --hifi or --ont should be enabled)\n");
-				fprintf(stderr, "         --ont, -f         ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -n -50] (Only one of --hifi or --ont should be enabled) \n");
+				fprintf(stderr, "         --hifi, -x         hifi preset params [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)\n");
+				fprintf(stderr, "         --ont, -y        ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled) \n");
 				fprintf(stderr, "         --baq, -q         Calculate BAQ [Disabled by default]\n");
 				fprintf(stderr, "         --gapOpen, -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]\n");
 				fprintf(stderr, "         --gapExt, -e         Gap extension [Default: 0.1]\n");
@@ -1102,7 +1112,8 @@ int main(int argc, char *argv[]){
 				fprintf(stderr, "         --indelThreshold, -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]\n");
 				fprintf(stderr, "         --initQ, -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]\n");
 				fprintf(stderr, "         --minQ, -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
-				fprintf(stderr, "         --primMarginScore, -p         Minimum margin between the consistensy score of primary and secondary alignment [Default: 20]\n");
+				fprintf(stderr, "         --primMarginScore, -p         Minimum margin between the consistensy score of primary and secondary alignment to select the secondary alignment [Default: 50]\n");
+				fprintf(stderr, "         --primMarginRandom, -r         Maximum margin between the consistensy score of primary and secondary alignment to select one randomly [Default: 50]\n");
 				
 				fprintf(stderr, "         --minScore, -n         Minimum consistency score of the selected secondary alignment [Default: -50]\n");
                                 return 1;
@@ -1111,7 +1122,7 @@ int main(int argc, char *argv[]){
 
 	if(preset_ont && preset_hifi){
 		fprintf(stderr, "Presets --hifi and --ont cannot be enabled at the same time. Select one of them!\n");
-		exit(0);
+		exit(EXIT_FAILURE);
 	}
 
 	faidx_t* fai = fai_load(fastaPath);
@@ -1187,7 +1198,7 @@ DEBUG_PRINT("\n@@ READ NAME: %s\n\t$ Number of alignments: %d\t Read l_qseq: %d\
 			}
 			if (alignments_len > 0){ // maybe the previous alignment was unmapped
 				// get the best alignment
-				int best_idx = get_best_record(alignments, alignments_len, prim_margin_q, min_score);
+				int best_idx = get_best_record(alignments, alignments_len, prim_margin_score, min_score, prim_margin_random);
 				bam1_t* best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
 				// write all alignments without any change if they are either chimeric or best alignment is primary
 				if(best &&
@@ -1207,7 +1218,7 @@ DEBUG_PRINT("\n@@ READ NAME: %s\n\t$ Number of alignments: %d\t Read l_qseq: %d\
 						}
 						else printf("!\t");
 						contig_name = sam_hdr_tid2name(sam_hdr, alignments[i]->record->core.tid);
-						printf("%.2f\t%s\t%ld\n", alignments[i]->qv, contig_name, alignments[i]->record->core.pos);
+						printf("%.2f\t%s\t%ld\t%ld\n", alignments[i]->qv, contig_name, alignments[i]->record->core.pos, alignments[i]->rfe);
 					}
 					printf("\n");
 				}
