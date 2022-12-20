@@ -129,7 +129,7 @@ Based on the initial letter of each line we can indentify the correct phasing of
 ### How To Run The Correction Program
 
 To swap the pri/sec tags of the reads reported in `${PHASING_OUT}.log` and produce a modified bam file you can run the program  `correct_bam`.
-Again it is recommended to run it using the docker image `mobinasri/secphase:v0.1`.
+Again it is recommended to run it using the docker image `mobinasri/secphase:v0.2.0`.
 
 Here are the parameters `correct_bam` can accept:
 ```
