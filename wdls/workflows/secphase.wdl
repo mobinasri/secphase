@@ -5,7 +5,7 @@ workflow runSecPhase{
         File inputBam
         File diploidAssemblyFastaGz
         String secphaseOptions = "--hifi"
-        String secphaseDockerImage = "mobinasri/secphase:dev-v0.1"
+        String secphaseDockerImage = "mobinasri/secphase:v0.2.0"
         Boolean debugMode = false
     }
     call sortByName{
@@ -57,7 +57,7 @@ task secphase {
         Int memSize=4
         Int threadCount=2
         Int diskSize=128
-        String dockerImage="mobinasri/secphase:dev-v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -105,7 +105,7 @@ task concatLogs {
         Int memSize=2
         Int threadCount=1
         Int diskSize=32
-        String dockerImage="mobinasri/secphase:dev-v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -146,7 +146,7 @@ task splitByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=512
-        String dockerImage="mobinasri/secphase:dev-v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -190,7 +190,7 @@ task sortByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=1024
-        String dockerImage="mobinasri/secphase:dev-v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -239,7 +239,7 @@ task sortByContig {
         Int memSize=8
         Int threadCount=4
         Int diskSize=128
-        String dockerImage="mobinasri/secphase:dev-v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
