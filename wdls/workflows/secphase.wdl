@@ -4,12 +4,14 @@ workflow runSecPhase{
     input {
         File inputBam
         File diploidAssemblyFastaGz
+        String secphaseOptions = "--hifi"
+        String secphaseDockerImage = "mobinasri/secphase:v0.2.0"
         Boolean debugMode = false
     }
     call sortByName{
          input:
              bamFile = inputBam,
-             diskSize = 3 * ceil(size(inputBam, "GB")) + 64
+             diskSize = 6 * ceil(size(inputBam, "GB")) + 64
     }
     call splitByName{
          input:
@@ -22,6 +24,8 @@ workflow runSecPhase{
                 bamFile = splitBam,
                 diploidAssemblyFastaGz = diploidAssemblyFastaGz,
                 debugMode = debugMode,
+                options = secphaseOptions,
+                dockerImage = secphaseDockerImage,
                 diskSize = ceil(size(splitBam, "GB")) + 64
         }
     }
@@ -47,13 +51,13 @@ task secphase {
     input {
         File bamFile
         File diploidAssemblyFastaGz
-        String options = "-q -c -t10 -d1e-4 -e0.1 -b20 -m20 -s40"
+        String options = "--hifi"
         Boolean debugMode
         # runtime configurations
         Int memSize=4
         Int threadCount=2
         Int diskSize=128
-        String dockerImage="mobinasri/secphase:v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -101,7 +105,7 @@ task concatLogs {
         Int memSize=2
         Int threadCount=1
         Int diskSize=32
-        String dockerImage="mobinasri/secphase:v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -142,7 +146,7 @@ task splitByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=512
-        String dockerImage="mobinasri/secphase:v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -186,7 +190,7 @@ task sortByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=1024
-        String dockerImage="mobinasri/secphase:v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -235,7 +239,7 @@ task sortByContig {
         Int memSize=8
         Int threadCount=4
         Int diskSize=128
-        String dockerImage="mobinasri/secphase:v0.1"
+        String dockerImage="mobinasri/secphase:v0.2.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
