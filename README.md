@@ -62,7 +62,7 @@ Two heuristics are applied for increasing specificity:
 
 ### How To Run The Phasing Program
 
-To run the phasing program it is recommended to use the docker image `mobinasri/secphase:v0.1`.
+To run the phasing program it is recommended to use the docker image `mobinasri/secphase:v0.2.0`.
 
 Here are the parameters `secphase` can accept:
 ```
@@ -70,16 +70,21 @@ Here are the parameters `secphase` can accept:
 
 Usage: secphase  -i <INPUT_BAM> -f <FASTA> 
 Options:
-         -i         Input bam file (sorted by qname and must contain cs tag) [required]
-         -f         Input fasta file [required]
-         -q         Calculate BAQ [Default: false]
-         -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]
-         -e         Gap extension [Default: 0.1]
-         -b         DP bandwidth [Default: 20]
-         -c         Use consensus confident blocks [Default: false]
-         -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]
-         -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]
-         -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]
+         --inputBam, -i         Input bam file
+         --inputFasta, -f         Input fasta file
+         --hifi, -x         hifi preset params [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)
+         --ont, -y        ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -r10 -n -50] (Only one of --hifi or --ont should be enabled) 
+         --baq, -q         Calculate BAQ [Disabled by default]
+         --gapOpen, -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]
+         --gapExt, -e         Gap extension [Default: 0.1]
+         --bandwidth, -b         DP bandwidth [Default: 20]
+         --consensus, -c         Use consensus confident blocks [Disabled by default]
+         --indelThreshold, -t         Indel size threshold for confident blocks [Default: 10 (for ONT use 20)]
+         --initQ, -s         Before calculating BAQ set all base qualities to this number [Default: 40 (for ONT use 20)]
+         --minQ, -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]
+         --primMarginScore, -p         Minimum margin between the consistensy score of primary and secondary alignment to select the secondary alignment [Default: 50]
+         --primMarginRandom, -r         Maximum margin between the consistensy score of primary and secondary alignment to select one randomly [Default: 50]
+         --minScore, -n         Minimum consistency score of the selected secondary alignment [Default: -50]
 ```
 
 The default values are set for the HiFi reads and the input bam file must be sorted by read name and contain the `cs` tag. So given a bam file (usually sorted by reference position) you can run these lines:
@@ -91,16 +96,16 @@ samtools sort -n -@8 ${INPUT_DIR}/${BAM_PREFIX}.bam > ${INPUT_DIR}/${BAM_PREFIX}
 ## Phase reads for HiFi
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
-	mobinasri/secphase:v0.1 \
-	secphase -q -c -t10 -d 1e-4 -e 0.1 -b20 -m20 -s40 \
+	mobinasri/secphase:v0.2.0 \
+	secphase --hifi \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa > ${PHASING_OUT}.log
 
 ## Phase reads for ONT
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
-	mobinasri/secphase:v0.1 \
-	secphase -q -c -t20 -d 1e-2 -e 0.1 -b20 -m10 -s20 \
+	mobinasri/secphase:v0.2.0 \
+	secphase --ont \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa > ${OUTPUT_DIR}/${PHASING_OUT}.log
 ```
@@ -110,15 +115,15 @@ Here is an example of a record in the `${PHASING_OUT}.log`:
 
 ```
 $	m64043_200710_174426/2353/ccs
-*	-35.00	HG00438#1#JAHBCB010000044.1	4904283
-@	-0.00	HG00438#2#JAHBCA010000036.1	3898995
+*	-35.00	HG00438#1#JAHBCB010000044.1	4904283	4924283
+@	-0.00	HG00438#2#JAHBCA010000036.1	3898995	3918995
 ```
 
 Based on the initial letter of each line we can indentify the correct phasing of each read:
 - `$` proceeds the read name which is `m64043_200710_174426/1311005/ccs` in this example
-- `*` proceeds the score and the start position of the primary alignment which is not to the correct haplotype
-- `@` proceeds the score and the start position of the secondary alignment which is to the correct haplotype
-- `!` proceeds the score and the start position of any other alignments (This example has only two alignments)
+- `*` proceeds the score and the start/end position of the primary alignment which is not to the correct haplotype
+- `@` proceeds the score and the start/end position of the secondary alignment which is to the correct haplotype
+- `!` proceeds the score and the start/end position of any other alignments (This example has only two alignments)
 
 
 ### How To Run The Correction Program
@@ -159,7 +164,7 @@ To produce the modified bam file: (Here the input bam file can be sorted by refe
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
 	-v ${OUTPUT_DIR}:${OUTPUT_DIR} \
-	mobinasri/secphase:v0.1 \
+	mobinasri/secphase:v0.2.0 \
 	correct_bam \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.bam \
 	-P ${INPUT_DIR}/${PHASING_OUT}.log \
@@ -172,9 +177,9 @@ Note the default values for `--minReadLen` and `--minAlignmentLen` are both `5k`
 
 ### Workflows
 
-Each of the phasing and correction programs is wdlized separately. The phasing wdl file is named [`secphase.wdl`](https://dockstore.org/workflows/github.com/mobinasri/secphase/Secphase:v0.1?tab=info) and the correction wdl file is named [`correct_bam.wdl`](https://dockstore.org/my-workflows/github.com/mobinasri/secphase/CorrectBam). These links can be used for importing the workflows to Terra or running locally with cromwell.
+Each of the phasing and correction programs is wdlized separately. The phasing wdl file is named [`secphase.wdl`](https://dockstore.org/workflows/github.com/mobinasri/secphase/Secphase) and the correction wdl file is named [`correct_bam.wdl`](https://dockstore.org/my-workflows/github.com/mobinasri/secphase/CorrectBam). These links can be used for importing the workflows to Terra or running locally with cromwell.
 Some notes about the inputs to these workflows:
-- For `secphase.wdl` set `secphase.options` to `-q -c -t20 -d 1e-2 -e 0.1 -b20 -m10 -s20` for ONT-guppy4(and 5) data and change it to `-q -c -t10 -d 1e-4 -e 0.1 -b20 -m20 -s40` for HiFi data.
+- For `secphase.wdl` set `secphase.options` to `--ont` for ONT-guppy4(and 5) data and change it to `--hifi` for HiFi data.
 
 ### Acknowledgements
 
