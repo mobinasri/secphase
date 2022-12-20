@@ -1103,7 +1103,7 @@ int main(int argc, char *argv[]){
                                 fprintf(stderr, "         --inputBam, -i         Input bam file\n");
 				fprintf(stderr, "         --inputFasta, -f         Input fasta file\n");
 				fprintf(stderr, "         --hifi, -x         hifi preset params [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)\n");
-				fprintf(stderr, "         --ont, -y        ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled) \n");
+				fprintf(stderr, "         --ont, -y        ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -r10 -n -50] (Only one of --hifi or --ont should be enabled) \n");
 				fprintf(stderr, "         --baq, -q         Calculate BAQ [Disabled by default]\n");
 				fprintf(stderr, "         --gapOpen, -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]\n");
 				fprintf(stderr, "         --gapExt, -e         Gap extension [Default: 0.1]\n");
