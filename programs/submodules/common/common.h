@@ -3,12 +3,34 @@
 #include <stdint.h>
 #include <string.h>
 
+#define ARRAY_SIZE(arr) (sizeof((arr)) / sizeof((arr)[0]))
+#define TIMESTAMP_SIZE 40
+
+
+//#define DEBUG
+
+#ifdef DEBUG
+//void DEBUG_PRINT(const char *, ...);
+void DEBUG_PRINT(const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+}
+
+#else
+static inline void DEBUG_PRINT(const char *fmt, ...) {};
+#endif
+
 typedef struct Splitter{
 	char* str;
 	int offset;
 	char* token;
 	char delimiter;
 } Splitter;
+
+char* get_timestamp();
 
 Splitter* Splitter_construct(char* str, char delimiter);
 
