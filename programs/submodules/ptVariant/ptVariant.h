@@ -15,36 +15,36 @@
 #include "vcf.h"
 #include "edlib.h"
 #include <time.h>
-
-
+#include "ptBlock.h"
+#include "ptAlignment.h"
 
 
 /*! @typedef
  @abstract Structure for a variant record
  @field contig		Name of the contig where the variant is located
- @field pos		Position of the variant in contig
- @field type		Type of the variant; can be 
- 			(Look at https://github.com/samtools/htslib/blob/develop/htslib/vcf.h)
- @field vaf		Variant allele frequency
- @field gq		Genotype quality
- @field gt              Genotype list
+ @field pos		    Position of the variant in contig
+ @field type		Type of the variant;
+                    (Look at https://github.com/samtools/htslib/blob/develop/htslib/vcf.h)
+ @field vaf		    Variant allele frequency
+ @field gq		    Genotype quality
+ @field gt          Genotype list
  @field gt_len		Length of gt
  @field alleles		allele sequences (starts with the REF allele)
  @field longest_allele_len	Length of the longest allele (could be insertion, deletion or snp)
  @field ps              Phase block number
  */
 typedef struct {
-        char contig[50];
-        int32_t	pos;
-	int8_t	type;
-        float	vaf;
-        int8_t	gq;
-       	int8_t*	gt;
-	int32_t gt_len;
-	stList* alleles;
-	int32_t longest_allele_len;
-        int64_t ps;
-}ptVariant;
+    char contig[50];
+    int32_t pos;
+    int8_t type;
+    float vaf;
+    int8_t gq;
+    int8_t *gt;
+    int32_t gt_len;
+    stList *alleles;
+    int32_t longest_allele_len;
+    int64_t ps;
+} ptVariant;
 
 
 /// Create a ptVariant structure
@@ -54,14 +54,14 @@ typedef struct {
  * 		The ptMarker struct returned by a successful call should be freed
  * 		via ptMarker_destruct() when it is no longer needed.
  */
-ptVariant* ptVariant_construct(char* contig, int32_t pos, int8_t  type, float vaf, int8_t  gq, int64_t ps);
+ptVariant *ptVariant_construct(char *contig, int32_t pos, int8_t type, float vaf, int8_t gq, int64_t ps);
 
 
 /// Free a ptVariant structure
 /*
  * @param variant       Pointer to the variant record
  */
-void ptVariant_destruct(ptVariant* variant)
+void ptVariant_destruct(ptVariant *variant)
 
 
 int ptVariant_cmp(const void *a, const void *b);
@@ -76,7 +76,7 @@ int ptVariant_cmp(const void *a, const void *b);
    starting from the REF allele to be consistent with the
    genotype indices
  */
-void ptVariant_append_allele(ptVariant* variant, char* allele);
+void ptVariant_append_allele(ptVariant *variant, char *allele);
 
 
 /// Add a genotype to a variant record
@@ -84,25 +84,25 @@ void ptVariant_append_allele(ptVariant* variant, char* allele);
    @param variant       Pointer to the variant record
    @param gt        	genotype index to be added
  */
-void ptVariant_append_gt(ptVariant* variant, int8_t gt);
+void ptVariant_append_gt(ptVariant *variant, int8_t gt);
 
 
-ptVariant* ptVariant_copy(ptVariant* src);
+ptVariant *ptVariant_copy(ptVariant *src);
 
 
 // make a copy of a list of variants
-stList* ptVariant_stList_copy(stList* variants);
+stList *ptVariant_stList_copy(stList *variants);
 
 
 // Returns true if two variants are at the same location (and of course same contig/chrom) otherwise false
-bool ptVariant_is_equal(ptVariant* var1, ptVariant* var2);
+bool ptVariant_is_equal(ptVariant *var1, ptVariant *var2);
 
 
 //Returns true if variant exists in the list otherwise false
-bool ptVariant_exist_in_list(ptVariant* var, stList* var_list);
+bool ptVariant_exist_in_list(ptVariant *var, stList *var_list);
 
 
-void ptVariant_print(ptVariant* variant);
+void ptVariant_print(ptVariant *variant);
 
 /// Swap the genotypes of the variants in a phase block
 // It is assumed that the variants are sorted by phase block
@@ -111,7 +111,7 @@ void ptVariant_print(ptVariant* variant);
    @param start		The index of the first variant in the phase block
    @param end		The index of the last variant in the phase block
 */
-void ptVariant_swap_gt(stList* variants, int start, int end);
+void ptVariant_swap_gt(stList *variants, int start, int end);
 
 
 /// Parse variants from a vcf file and save the phased variants
@@ -128,7 +128,7 @@ void ptVariant_swap_gt(stList* variants, int start, int end);
 /**
    @param vcf_path	The path to a vcf file
 */
-stList* read_phased_variants(char* vcf_path, bool consistent_gt);
+stList *read_phased_variants(char *vcf_path, bool consistent_gt);
 
 
 // 
@@ -140,7 +140,7 @@ stList* read_phased_variants(char* vcf_path, bool consistent_gt);
  * @param variants	stList of variants (can be the output of read_phased_variants())
  *
  */
-stList* filter_ref_variants(stList* variants);
+stList *filter_ref_variants(stList *variants);
 
 
 // 
@@ -171,7 +171,7 @@ stList* filter_ref_variants(stList* variants);
  * @param min_margin		Minimum margin length from each side of a variant
  * @return variant_blocks	Table of variant blocks (keys=contig names)
  */
-stHash* ptVariant_extract_variant_blocks(stList* variants, const faidx_t* fai, int min_margin);
+stHash *ptVariant_extract_variant_blocks(stList *variants, const faidx_t *fai, int min_margin);
 
 
 //
@@ -183,7 +183,7 @@ stHash* ptVariant_extract_variant_blocks(stList* variants, const faidx_t* fai, i
  * @param block		Block saved as a ptBlock struct
  * @return block_seq	Read sequence of the given block
  */
-char* fetch_read_seq(ptAlignment* alignment, ptBlock* block);
+char *fetch_read_seq(ptAlignment *alignment, ptBlock *block);
 
 
 //
@@ -199,7 +199,7 @@ char* fetch_read_seq(ptAlignment* alignment, ptBlock* block);
  * @return seq_corrected	Corrected reference sequence of the block    
  */
 
-char* fetch_corrected_ref_seq(const faidx_t* fai, ptBlock* block, char* contig_name);
+char *fetch_corrected_ref_seq(const faidx_t *fai, ptBlock *block, char *contig_name);
 
 
 //
@@ -216,7 +216,7 @@ char* fetch_corrected_ref_seq(const faidx_t* fai, ptBlock* block, char* contig_n
  * @return read_blocks		stList of blocks with rds_f and rde_f
  */
 // ref_variant_blocks should be sorted by rfs with no overlap
-stList* project_blocks_to_read(ptAlignment* alignment, stList* ref_variant_blocks);
+stList *project_blocks_to_read(ptAlignment *alignment, stList *ref_variant_blocks);
 
 
 /**
@@ -226,7 +226,7 @@ stList* project_blocks_to_read(ptAlignment* alignment, stList* ref_variant_block
    @param blocks     a list of blocks sorted by rds_f
    @return      A list of merged blocks
  */
-stList* merge_variant_read_blocks(stList* blocks);
+stList *merge_variant_read_blocks(stList *blocks);
 
 
 //
@@ -241,7 +241,7 @@ stList* merge_variant_read_blocks(stList* blocks);
  * @param contig_name	Contig name
  * @return edit_distance	Edit distance between read sequence and corrected ref sequence
  */
-int get_edit_distance(ptAlignment* alignment, faidx_t* fai, ptBlock* block, char* contig_name);
+int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block, char *contig_name);
 
 
 
@@ -261,7 +261,8 @@ int get_edit_distance(ptAlignment* alignment, faidx_t* fai, ptBlock* block, char
  * @param contig_name   	Contig name
  * @return edit_distance	Summation of edit distances between read and reference for all blocks
  */
-int get_edit_distance_all_blocks(ptAlignment* alignment, const faidx_t* fai, char* contig_name, stList* variant_read_blocks);
+int get_edit_distance_all_blocks(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
+                                 stList *variant_read_blocks);
 
 
 // This function performs three main tasks:
@@ -276,7 +277,7 @@ int get_edit_distance_all_blocks(ptAlignment* alignment, const faidx_t* fai, cha
  * @param min_margin		Minimum size of the block surrounding each variant
  *
  */
-stHash* parse_variants_and_extract_blocks(char* vcf_path, faidx_t* fai, int min_margin);
+stHash *parse_variants_and_extract_blocks(char *vcf_path, faidx_t *fai, int min_margin);
 
 
 //
@@ -287,7 +288,7 @@ stHash* parse_variants_and_extract_blocks(char* vcf_path, faidx_t* fai, int min_
  * @param bed_path		Path to the bed file for saving the blocks
  *
  */
-void ptVariant_save_variant_ref_blocks(stHash* variant_ref_blocks, char* bed_path);
+void ptVariant_save_variant_ref_blocks(stHash *variant_ref_blocks, char *bed_path);
 
 
 
@@ -303,7 +304,9 @@ void ptVariant_save_variant_ref_blocks(stHash* variant_ref_blocks, char* bed_pat
  * @param sam_hdr		SAM header 
  *
  */
-stList* ptVariant_get_merged_variant_read_blocks(stHash* variant_ref_blocks, ptAlignment** alignments, int alignments_len, sam_hdr_t* sam_hdr);
+stList *
+ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len,
+                                         sam_hdr_t *sam_hdr);
 
 /**
  * If there is at least one alignment that encompasses a variant block
@@ -314,6 +317,6 @@ stList* ptVariant_get_merged_variant_read_blocks(stHash* variant_ref_blocks, ptA
  * @param alignments_len                    Length of alignments array
  * @param variant_ref_blocks_per_contig     Output of parse_variants_and_extract_blocks()
  */
-bool overlap_variant_ref_blocks(stHash* variant_ref_blocks_per_contig, ptAlignment** alignments, int alignments_len);
+bool overlap_variant_ref_blocks(stHash *variant_ref_blocks_per_contig, ptAlignment **alignments, int alignments_len);
 
 #endif /* PT_VARIANT_H */
