@@ -78,6 +78,16 @@ ptMarker* ptMarker_copy(ptMarker* src);
 int ptMarker_cmp(const void *a, const void *b);
 
 
+/**
+ * Get the initial list of markers that only contains mismatch bases
+ *
+ * @param alignments            An array of alignments each of which saved as ptAlignment struct
+ * @param alignments_len        Length of alignments array
+ * @param min_q                 Minimum raw base quality of a marker
+ *
+ */
+stList* ptMarker_get_initial_markers(ptAlignment** alignments, int alignments_len, int min_q) {
+
 
 /**
  * This function will create a marker with its attribute is_match set to true

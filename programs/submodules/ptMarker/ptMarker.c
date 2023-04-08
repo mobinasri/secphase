@@ -1,32 +1,34 @@
 #include "ptMarker.h"
+#include "ptBlock.h"
+#include "cigar_it.h"
 
 ptMarker* ptMarker_construct(int32_t alignment_idx, int32_t base_idx, int32_t read_pos_f, uint8_t base_q, bool is_match, int32_t ref_pos){
-	ptMarker* marker = (ptMarker*) malloc(sizeof(ptMarker));
-	marker->alignment_idx = alignment_idx;
-        marker->is_match = is_match;
-        marker->read_pos_f = read_pos_f;
+    ptMarker* marker = (ptMarker*) malloc(sizeof(ptMarker));
+    marker->alignment_idx = alignment_idx;
+    marker->is_match = is_match;
+    marker->read_pos_f = read_pos_f;
 	marker->base_idx = base_idx;
-        marker->base_q = base_q;
+    marker->base_q = base_q;
 	marker->ref_pos = ref_pos;
 	return marker;
 }
 
 
 ptMarker* ptMarker_copy(ptMarker* src){
-        ptMarker* dest = (ptMarker*) malloc(sizeof(ptMarker));
-        dest->alignment_idx = src->alignment_idx;
-        dest->is_match = src->is_match;
-        dest->read_pos_f = src->read_pos_f;
-        dest->base_idx = src->base_idx;
-        dest->base_q = src->base_q;
+    ptMarker* dest = (ptMarker*) malloc(sizeof(ptMarker));
+    dest->alignment_idx = src->alignment_idx;
+    dest->is_match = src->is_match;
+    dest->read_pos_f = src->read_pos_f;
+    dest->base_idx = src->base_idx;
+    dest->base_q = src->base_q;
 	dest->ref_pos = src->ref_pos;
-        return dest;
+    return dest;
 }
 
 
 int ptMarker_cmp(const void *a, const void *b){
-        ptMarker* m1 = (ptMarker*) a;
-        ptMarker* m2 = (ptMarker*) b;
+    ptMarker* m1 = (ptMarker*) a;
+    ptMarker* m2 = (ptMarker*) b;
 	if (m1->read_pos_f == m2->read_pos_f) {
 		return m1->alignment_idx - m2->alignment_idx;
 	}
@@ -36,36 +38,68 @@ int ptMarker_cmp(const void *a, const void *b){
 }
 
 
+stList* ptMarker_get_initial_markers(ptAlignment** alignments, int alignments_len, int min_q) {
+    stList* markers = stList_construct3(0, free);
+    for(int i = 0; i < stList_get(alignments); i++) {
+        ptCigarIt *cigar_it = ptCigarIt_construct(alignments[i]->record, true, true);
+        uint8_t* quality = bam_get_qual(alignments[i]->record);
+        while (ptCigarIt_next(cigar_it)) {
+            if (cigar_it->op == BAM_CDIFF) {
+                for (int j = 0; j < cigar_it->len; j++) {
+                    if (quality[cigar_it->sqs + j] < min_q) continue;
+                    if (bam_is_rev(b)) {
+                        marker = ptMarker_construct(i,
+                                                    cigar_it->sqs + j,
+                                                    cigar_it->rde_f - j,
+                                                    quality[cigar_it->sqs + j],
+                                                    false,
+                                                    cigar_it->rfs + j);
+                    } else {
+                        marker = ptMarker_construct(i,
+                                                    cigar_it->sqs + j,
+                                                    cigar_it->rds_f + j,
+                                                    quality[cigar_it->sqs + j],
+                                                    false,
+                                                    cigar_it->rfs + j);
+                    }
+                    stList_append(markers, marker);
+                }
+            }
+        }
+    }
+    return markers;
+}
+
 ptMarker* ptMarker_construct_match(ptAlignment** alignments, int32_t alignment_idx, int32_t read_pos_f){
 	bam1_t* record = alignments[alignment_idx]->record;
-        uint8_t* q = bam_get_qual(record);
+    uint8_t* q = bam_get_qual(record);
 	ptMarker* match;
 	uint32_t* cigar = bam_get_cigar(record);
 	int lclip=0;
 	int rclip=0;
 	if (bam_cigar_op(cigar[0]) == BAM_CHARD_CLIP) {
-                lclip = bam_cigar_oplen(cigar[0]);
-        }
-        if (bam_cigar_op(cigar[record->core.n_cigar - 1]) == BAM_CHARD_CLIP) {
-                rclip = bam_cigar_oplen(cigar[record->core.n_cigar - 1]);
-        }
+        lclip = bam_cigar_oplen(cigar[0]);
+    }
+    if (bam_cigar_op(cigar[record->core.n_cigar - 1]) == BAM_CHARD_CLIP) {
+            rclip = bam_cigar_oplen(cigar[record->core.n_cigar - 1]);
+    }
 	// construct the match marker
 	if (bam_is_rev(record)){
 		match = ptMarker_construct(alignment_idx,
-					   record->core.l_qseq + rclip - read_pos_f - 1,
-                                           read_pos_f,
-                                           q[record->core.l_qseq + rclip - read_pos_f - 1],
-                                           true,
-					   -1);
+                                   record->core.l_qseq + rclip - read_pos_f - 1,
+                                   read_pos_f,
+                                   q[record->core.l_qseq + rclip - read_pos_f - 1],
+                                   true,
+                                   -1);
         }
-        else {
+    else {
 		match = ptMarker_construct(alignment_idx,
-				           read_pos_f - lclip,
-                                           read_pos_f,
-                                           q[read_pos_f - lclip],
-                                           true,
-					   -1);
-        }
+                                   read_pos_f - lclip,
+                                   read_pos_f,
+                                   q[read_pos_f - lclip],
+                                   true,
+                                   -1);
+    }
 	return match;
 }
 
@@ -174,8 +208,8 @@ void remove_all_mismatch_markers(stList** markers_p, int alignments_len){
 	stList_sort(markers, ptMarker_cmp);
 	int markers_len = stList_length(markers);
 	if(markers_len == 0) return;
-        bool* markers_keep_flags = (bool*) malloc(markers_len * sizeof(bool));
-        memset(markers_keep_flags, 1, markers_len);
+    bool* markers_keep_flags = (bool*) malloc(markers_len * sizeof(bool));
+    memset(markers_keep_flags, 1, markers_len);
 	ptMarker* marker;
 	ptMarker* pre_marker = NULL;
 	int occ = 0;
@@ -193,15 +227,15 @@ void remove_all_mismatch_markers(stList** markers_p, int alignments_len){
 	}
 	if(occ == alignments_len){
 		memset(markers_keep_flags + markers_len - alignments_len, 0, alignments_len);
-        }
+    }
 	// make a list for saving the remaining markers
-        stList* keep_markers = stList_construct3(0, free);
-        for(int j=0; j < markers_len; j++){
-                if(markers_keep_flags[j]){
-                        marker = stList_get(markers, j);
-                        stList_append(keep_markers, ptMarker_copy(marker));
-                }
-        }
+    stList* keep_markers = stList_construct3(0, free);
+    for(int j=0; j < markers_len; j++){
+            if(markers_keep_flags[j]){
+                    marker = stList_get(markers, j);
+                    stList_append(keep_markers, ptMarker_copy(marker));
+            }
+    }
 	// free previous list of markers
 	stList_destruct(markers);
 	// update the list
@@ -325,24 +359,21 @@ stList* find_confident_blocks(ptAlignment* alignment, int threshold){
 	ptBlock* block = NULL;
 	while(ptCigarIt_next(cigar_it)){
 		switch(cigar_it->op) {
-                	case BAM_CINS:
+            case BAM_CINS:
 			case BAM_CDEL:
-                        	if(cigar_it->len > threshold && 
-				   conf_sqs < cigar_it->sqs &&
-				   conf_rfs < cigar_it->rfs){
-					if (bam_is_rev(b)) {
+                if(cigar_it->len > threshold && conf_sqs < cigar_it->sqs && conf_rfs < cigar_it->rfs){
+                    if (bam_is_rev(b)) {
+                        block = ptBlock_construct(conf_rfs, cigar_it->rfs - 1,
+                                                  conf_sqs, cigar_it->sqs - 1,
+                                                  cigar_it->rde_f + 1, conf_rd_f);
+                    }else {
 						block = ptBlock_construct(conf_rfs, cigar_it->rfs - 1,
-								          conf_sqs, cigar_it->sqs - 1,
-									  cigar_it->rde_f + 1, conf_rd_f);
-					}
-					else {
-						block = ptBlock_construct(conf_rfs, cigar_it->rfs - 1,
-								          conf_sqs, cigar_it->sqs - 1,
-									  conf_rd_f, cigar_it->rds_f - 1);
+                                                  conf_sqs, cigar_it->sqs - 1,
+                                                  conf_rd_f, cigar_it->rds_f - 1);
 					}
 					stList_append(conf_blocks, block);
 				}
-				if(cigar_it->len > threshold){
+                if(cigar_it->len > threshold){
 					conf_sqs = cigar_it->sqe + 1;
                                 	conf_rfs = cigar_it->rfe + 1;
 					conf_rd_f = bam_is_rev(b) ? cigar_it->rds_f - 1 : cigar_it->rde_f + 1;
