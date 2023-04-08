@@ -263,8 +263,8 @@ int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block, char
  * @param contig_name   	Contig name
  * @return edit_distance	Summation of edit distances between read and reference for all blocks
  */
-int get_edit_distance_all_blocks(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
-                                 stList *variant_read_blocks);
+int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
+                            stList *variant_read_blocks);
 
 
 // This function performs three main tasks:
@@ -307,7 +307,8 @@ void ptVariant_save_variant_ref_blocks(stHash *variant_ref_blocks, char *bed_pat
  *
  */
 stList *
-ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len, sam_hdr_t *sam_hdr);
+ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len,
+                                         sam_hdr_t *sam_hdr);
 
 /**
  * If there is at least one alignment that encompasses a variant block

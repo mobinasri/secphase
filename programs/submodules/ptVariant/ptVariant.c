@@ -711,8 +711,8 @@ int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block) {
 }
 
 
-int get_edit_distance_all_blocks(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
-                                 stList *variant_read_blocks) {
+int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
+                            stList *variant_read_blocks) {
     bam1_t *b = alignment->record;
     int j = bam_is_rev(b) ? stList_length(variant_read_blocks) - 1 : 0;
     int edit_distance = 0;
