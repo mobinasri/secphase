@@ -63,7 +63,7 @@ ptVariant *ptVariant_construct(char *contig, int32_t pos, int8_t type, float vaf
 /*
  * @param variant       Pointer to the variant record
  */
-void ptVariant_destruct(ptVariant *variant)
+void ptVariant_destruct(ptVariant *variant);
 
 
 int ptVariant_cmp(const void *a, const void *b);
@@ -307,8 +307,7 @@ void ptVariant_save_variant_ref_blocks(stHash *variant_ref_blocks, char *bed_pat
  *
  */
 stList *
-ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len,
-                                         sam_hdr_t *sam_hdr);
+ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len, sam_hdr_t *sam_hdr);
 
 /**
  * If there is at least one alignment that encompasses a variant block
