@@ -848,7 +848,6 @@ void ptVariant_save_variant_ref_blocks(stHash *variant_ref_blocks, char *bed_pat
     FILE *fp = fopen(bed_path, "w");
     if (fp == NULL) {
         fprintf(stderr, "[%s] Failed to open file %s.\n", get_timestamp(), bed_path);
-        return 1;
     }
 
     // iterate over contigs with variant blocks and print them in the bed file
