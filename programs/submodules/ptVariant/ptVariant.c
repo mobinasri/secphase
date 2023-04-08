@@ -822,7 +822,7 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
 
 
 stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, faidx_t *fai, int min_margin) {
-    stList *phased_variants = read_phased_variants(vcfPath, true);
+    stList *phased_variants = read_phased_variants(vcf_path, true);
     fprintf(stdout, "[%s] Number of parsed phased variants = %d\n", get_timestamp(), stList_length(phased_variants));
     stList *selected_variants = filter_ref_variants(phased_variants);
     fprintf(stdout, "[%s] Number of selected variants = %d\n", get_timestamp(), stList_length(selected_variants));
