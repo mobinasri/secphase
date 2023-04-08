@@ -305,4 +305,15 @@ void ptVariant_save_variant_ref_blocks(stHash* variant_ref_blocks, char* bed_pat
  */
 stList* ptVariant_get_merged_variant_read_blocks(stHash* variant_ref_blocks, ptAlignment** alignments, int alignments_len, sam_hdr_t* sam_hdr);
 
+/**
+ * If there is at least one alignment that encompasses a variant block
+ * completely then return true otherwise false
+ *
+ *
+ * @param alignments                        An array of alignments each of which saved as ptAlignment struct
+ * @param alignments_len                    Length of alignments array
+ * @param variant_ref_blocks_per_contig     Output of parse_variants_and_extract_blocks()
+ */
+bool overlap_variant_ref_blocks(stHash* variant_ref_blocks_per_contig, ptAlignment** alignments, int alignments_len);
+
 #endif /* PT_VARIANT_H */

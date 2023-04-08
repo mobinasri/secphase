@@ -946,5 +946,25 @@ void set_scores_as_edit_distances(stList* read_blocks_merged, ptAlignment** alig
 }
 
 
-bool overlap_variant_ref_blocks(stHash* variant_ref_blocks, ptAlignment** alignments, int alignments_len){
+bool overlap_variant_ref_blocks(stHash* variant_ref_blocks_per_contig, ptAlignment** alignments, int alignments_len){
+    // Iterate over alignments
+    for(int i = 0; i < alignments_len; i++) {
+        stList* blocks_contig = stHash_search(variant_ref_blocks_per_contig, alignments[i]->contig);
+        // If there is no block then continue
+        if (blocks_contig == NULL || stList_length(blocks_contig) == 0) continue;
+        ptBlock* first_block = stList_get(blocks_contig, 0);
+        ptBlock* last_block = stList_get(blocks_contig, stList_length(blocks_contig));
+        // If the alignment ends after the first block or starts after the last block then continue
+        if (last_block->rfe < alignments[i]->rfs) || (alignments[i]->rfe < first_block->rfs) continue;
+        // Check all blocks
+        for(int j = 0; j < stList_length(blocks_contig); j++) {
+            ptBlock* block = stList_get(blocks_contig, 0);
+            // If a block was completely within an alignment then return true
+            if (alignments[i]->rfs <= block->rfs) && (block->rfe <= alignments[i]->rfe)) return true;
+        }
+    }
+    return false;
 }
+
+
+
