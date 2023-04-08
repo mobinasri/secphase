@@ -310,6 +310,21 @@ stList *
 ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len,
                                          sam_hdr_t *sam_hdr);
 
+
+/**
+ * This function does these main tasks
+ *  1. Project read blocks to reference
+ *  2. Calculate the edit distance between corrected reference and read sequence
+ *  3. Set the alignment scores as negative values of edit distances (The best alignment should have the highest score)
+ *
+ * @param variant_ref_blocks    Output of parse_variants_and_extract_blocks()
+ * @param alignments            An array of alignments each of which saved as ptAlignment struct
+ * @param alignments_len        Length of alignments array
+ * @param sam_hdr		SAM header
+ *
+ */
+void set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t* fai)
+
 /**
  * If there is at least one alignment that encompasses a variant block
  * completely then return true otherwise false

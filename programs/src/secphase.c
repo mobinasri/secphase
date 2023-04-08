@@ -259,7 +259,7 @@ int main(int argc, char *argv[]) {
                 if (overlap_variant_ref_blocks(variant_ref_blocks_per_contig, alignments, alignments_len)) {
                     stList *merged_variant_read_blocks = ptVariant_get_merged_variant_read_blocks(
                             variant_ref_blocks_per_contig, alignments, alignments_len);
-                    set_edit_distances_as_scores(merged_variant_read_blocks, alignments, alignments_len);
+                    set_scores_as_edit_distances(merged_variant_read_blocks, alignments, alignments_len);
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
