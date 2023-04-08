@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
 
 
     faidx_t *fai = fai_load(fastaPath);
-    stHash *variant_ref_blocks_per_contig = ptBlock_extract_variant_blocks(selected_variants, fai, min_var_margin);
+    stHash *variant_ref_blocks_per_contig = parse_variants_and_extract_blocks(vcfPath, fai, min_margin);
 
     if (debug == true) {
         char bed_path_ref_blocks[50];
