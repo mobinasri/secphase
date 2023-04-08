@@ -243,7 +243,7 @@ stList *merge_variant_read_blocks(stList *blocks);
  * @param contig_name	Contig name
  * @return edit_distance	Edit distance between read sequence and corrected ref sequence
  */
-int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block, char *contig_name);
+int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block);
 
 
 

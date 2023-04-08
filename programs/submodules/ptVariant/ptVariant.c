@@ -792,7 +792,7 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
                 //for(int k=0; k < stList_length(kept_variants);k++){
                 //	ptVariant_print(stList_get(kept_variants,k));
                 //}
-                edit_distance += get_edit_distance(alignment, fai, block, contig_name);
+                edit_distance += get_edit_distance(alignment, fai, block);
                 // update block index; j
                 if (bam_is_rev(b) && j > 0) {
                     j--;
