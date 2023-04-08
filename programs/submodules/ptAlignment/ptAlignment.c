@@ -2,20 +2,65 @@
 
 
 ptAlignment* ptAlignment_construct(bam1_t* record, sam_hdr_t* sam_hdr){
-        ptAlignment* alignment = (ptAlignment*) malloc(sizeof(ptAlignment));
-        alignment->record = bam_init1();
-        assert(bam_copy1(alignment->record, record) != NULL);
-	strcpy(alignment->contig, sam_hdr_tid2name(sam_hdr, record->core.tid));
-        alignment->score = 0.0;
-        alignment->conf_blocks = NULL;
-        alignment->flank_blocks = NULL;
-        alignment->rfs = -1;
-        alignment->rfe = -1;
-        alignment->rds_f = -1;
-        alignment->rde_f = -1;
-        return alignment;
+    ptAlignment* alignment = (ptAlignment*) malloc(sizeof(ptAlignment));
+    alignment->record = bam_init1();
+    assert(bam_copy1(alignment->record, record) != NULL);
+    strcpy(alignment->contig, sam_hdr_tid2name(sam_hdr, record->core.tid));
+    alignment->score = 0.0;
+    alignment->conf_blocks = NULL;
+    alignment->flank_blocks = NULL;
+    ptAlignment_init_coordinates(alignment);
+    return alignment;
 }
 
+void ptAlignment_init_coordinates(ptAlignment* alignment){
+    ptCigarIt* cigar_it = ptCigarIt_construct(alignment->record, true, true);
+    uint8_t* quality = bam_get_qual(b);
+    while(ptCigarIt_next(cigar_it)){
+        //set the start coordinates of the alignment
+        if (alignment->rfs == -1 &&
+            (cigar_it->op == BAM_CMATCH ||
+             cigar_it->op == BAM_CEQUAL ||
+             cigar_it->op == BAM_CDIFF)) {
+            alignment->rfs = cigar_it->rfs;
+            if(bam_is_rev(b)){
+                alignment->rde_f = cigar_it->rde_f;
+            }
+            else{
+                alignment->rds_f = cigar_it->rds_f;
+            }
+        }
+        //set the end coordinates of the alignment
+        //if the alignment ends with hard or soft clipping
+        //alignment->rfs != -1 is to make sure we have reached
+        //the end of the alignment
+        if (alignment->rfe == -1 &&
+            alignment->rfs != -1 &&
+            (cigar_it->op == BAM_CHARD_CLIP ||
+             cigar_it->op == BAM_CSOFT_CLIP )) {
+            alignment->rfe = cigar_it->rfe;
+            if(bam_is_rev(b)){
+                alignment->rds_f = cigar_it->rde_f + 1;
+            }else{
+                alignment->rde_f = cigar_it->rds_f - 1;
+            }
+        }
+    }
+    //set the end coordinates of the alignment
+    //if the alignment ends with mis/matches
+    if (alignment->rfe == -1 &&
+        (cigar_it->op == BAM_CMATCH ||
+         cigar_it->op == BAM_CEQUAL ||
+         cigar_it->op == BAM_CDIFF)) {
+        alignment->rfe = cigar_it->rfe;
+        if(bam_is_rev(b)){
+            alignment->rds_f = cigar_it->rds_f;
+        }
+        else{
+            alignment->rde_f = cigar_it->rde_f;
+        }
+    }
+}
 void ptAlignment_destruct(ptAlignment* alignment){
         if (alignment->record){
                 bam_destroy1(alignment->record);

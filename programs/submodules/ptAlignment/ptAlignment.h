@@ -24,19 +24,20 @@
  * @field rde_f		end coordinate on read's forward strand (0-based inclusive)
  */
 typedef struct {
-        bam1_t* record;
-	char contig[50];
-        double score;
-        stList* conf_blocks;
-        stList* flank_blocks;
-        int rfs;
-        int rfe;
-        int rds_f;
-        int rde_f;
+    bam1_t* record;
+    char contig[50];
+    double score;
+    stList* conf_blocks;
+    stList* flank_blocks;
+    int rfs;
+    int rfe;
+    int rds_f;
+    int rde_f;
 }ptAlignment;
 
-// Construct a ptAlignment struct
-/*
+/**
+ * Construct a ptAlignment struct
+ *
  * @param record 	Alignment record
  * @param score		Initial score of the alignment (usually just 0.0)
  * @return alignment	Alignment saved as a ptAlignment struct
@@ -45,15 +46,28 @@ typedef struct {
 ptAlignment* ptAlignment_construct(bam1_t* record, double score);
 
 
-// Destruct a ptAlignment struct
-/*
+/**
+ * Set start and end coordinates of an alignment
+ * It will set the attributes rfs, rfe, rds_f, rde_f
+ *
+ * @param alignment        Alignment saved as a ptAlignment struct
+ *
+ */
+void ptAlignment_init_coordinates(ptAlignment* alignment);
+
+
+/**
+ * Destruct a ptAlignment struct
+ *
  * @param alignment        Alignment saved as a ptAlignment struct 
  *
  */
 void ptAlignment_destruct(ptAlignment* alignment);
 
-// Check if there is a supplementary alignment among 
-// the given list of alignments
+/**
+ * Check if there is a supplementary alignment among
+ * the given list of alignments
+ */
 bool ptAlignment_contain_supp(ptAlignment** alignments, int alignments_len);
 
 
