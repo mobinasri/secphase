@@ -24,6 +24,8 @@ RUN cd /home/apps && \
     make install
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
+# added edlib dir
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/programs/submodules/edlib
 
 COPY ./programs /home/programs
 #COPY ./scripts  /home/scripts
