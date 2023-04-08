@@ -42,8 +42,9 @@ stList *ptMarker_get_initial_markers(ptAlignment **alignments, int alignments_le
     stList *markers = stList_construct3(0, free);
     ptMarker *marker = NULL;
     for (int i = 0; i < alignments_len; i++) {
-        ptCigarIt *cigar_it = ptCigarIt_construct(alignments[i]->record, true, true);
-        uint8_t *quality = bam_get_qual(alignments[i]->record);
+        bam1_t* b = alignments[i]->record;
+        ptCigarIt *cigar_it = ptCigarIt_construct(b, true, true);
+        uint8_t *quality = bam_get_qual(b);
         while (ptCigarIt_next(cigar_it)) {
             if (cigar_it->op == BAM_CDIFF) {
                 for (int j = 0; j < cigar_it->len; j++) {
