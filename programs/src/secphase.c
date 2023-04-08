@@ -35,12 +35,12 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
             fprintf(output_log_file, "@\t");
             alignments[i]->record->core.flag &= ~BAM_FSECONDARY;
         } else fprintf(output_log_file, "!\t");
-        if (score_type == SCORE_TYPE_MARKER) {
+        if (score_type == SCORE_TYPE_EDIT_DISTANCE) {
             int edit_distance = -1 * alignments[i]->score;
             fprintf(output_log_file, "%d\t%s\t%ld\t%d\n", edit_distance, alignments[i]->contig,
                     alignments[i]->record->core.pos,
                     alignments[i]->rfe);
-        } else if (score_type == SCORE_TYPE_EDIT_DISTANCE) {
+        } else if (score_type == SCORE_TYPE_MARKER) {
             fprintf(output_log_file, "%.2f\t%s\t%ld\t%d\n", alignments[i]->score, alignments[i]->contig,
                     alignments[i]->record->core.pos, alignments[i]->rfe);
         }
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
-                        fprintf(output_log_file, "#EDIT DISTANCE");
+                        fprintf(output_log_file, "#EDIT DISTANCE\n");
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE,
                                                output_log_file);
@@ -310,7 +310,7 @@ int main(int argc, char *argv[]) {
                                                          prim_margin_random);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
-                        fprintf(output_log_file, "#MARKER SCORE");
+                        fprintf(output_log_file, "#MARKER SCORE\n");
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER,
                                                output_log_file);
