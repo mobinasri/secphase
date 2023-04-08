@@ -278,7 +278,6 @@ int main(int argc, char *argv[]) {
                                                output_log_file);
                     }
                     stList_destruct(merged_variant_read_blocks);
-                    stHash_destruct(variant_ref_blocks_per_contig);
                 }
                     // If there is no overlap with variant blocks go to the marker consistency mode
                 else {
@@ -341,6 +340,7 @@ int main(int argc, char *argv[]) {
     sam_close(fp);
     bam_destroy1(b);
     fclose(output_log_file);
+    stHash_destruct(variant_ref_blocks_per_contig);
 }
 
 //main();
