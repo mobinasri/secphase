@@ -16,6 +16,7 @@
 #include "vcf.h"
 #include "edlib.h"
 #include <time.h>
+#include <stdlib.h>
 #include "ptAlignment.h"
 #include "ptBlock.h"
 
@@ -88,7 +89,7 @@ int ptMarker_cmp(const void *a, const void *b);
  * @param min_q                 Minimum raw base quality of a marker
  *
  */
-stList* ptMarker_get_initial_markers(ptAlignment** alignments, int alignments_len, int min_q) {
+stList* ptMarker_get_initial_markers(ptAlignment** alignments, int alignments_len, int min_q);
 
 
 /**

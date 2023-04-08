@@ -40,7 +40,8 @@ int ptMarker_cmp(const void *a, const void *b) {
 
 stList *ptMarker_get_initial_markers(ptAlignment **alignments, int alignments_len, int min_q) {
     stList *markers = stList_construct3(0, free);
-    for (int i = 0; i < stList_get(alignments); i++) {
+    ptMarker *marker = NULL;
+    for (int i = 0; i < alignments_len; i++) {
         ptCigarIt *cigar_it = ptCigarIt_construct(alignments[i]->record, true, true);
         uint8_t *quality = bam_get_qual(alignments[i]->record);
         while (ptCigarIt_next(cigar_it)) {
