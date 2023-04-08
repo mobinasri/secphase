@@ -15,9 +15,9 @@ RUN cd /home/apps && \
 
 #install hstlib  C API
 RUN cd /home/apps && \
-    wget https://github.com/samtools/htslib/releases/download/1.13/htslib-1.13.tar.bz2 && \
-    tar -xvjf htslib-1.13.tar.bz2 && \
-    cd htslib-1.13 && \
+    wget https://github.com/samtools/htslib/releases/download/1.17/htslib-1.17.tar.bz2 && \
+    tar -xvjf htslib-1.17.tar.bz2 && \
+    cd htslib-1.17 && \
     autoreconf -i && \
     ./configure && \
     make && \
