@@ -798,7 +798,7 @@ calc_local_baq(const faidx_t *fai, const char *contig_name, ptAlignment *alignme
                     if (ptCigarIt_next(cigar_it) == 0) break;
                 } else break;
             }
-            for (int k = min_margin; k < seq_len - min_margin; k++) qual[block->sqs + k] = bq[k] < 94 ? bq[k] : 93;
+            for (int k = block_margin; k < seq_len - block_margin; k++) qual[block->sqs + k] = bq[k] < 94 ? bq[k] : 93;
             free(tseq);
             free(tref);
             free(state);
