@@ -22,7 +22,8 @@
 #define SCORE_TYPE_MARKER           0
 #define SCORE_TYPE_EDIT_DISTANCE    1
 
-void print_alignment_scores(ptAlignment **alignments, int alignments_len, int best_idx, int score_type, FILE *output_log_file) {
+void print_alignment_scores(ptAlignment **alignments, int alignments_len, int best_idx, int score_type,
+                            FILE *output_log_file) {
     for (int i = 0; i < alignments_len; i++) {
         // change primary to secondary
         if ((alignments[i]->record->core.flag & BAM_FSECONDARY) == 0) {
@@ -36,7 +37,8 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
         } else fprintf(output_log_file, "!\t");
         if (score_type == SCORE_TYPE_MARKER) {
             int edit_distance = -1 * alignments[i]->score;
-            fprintf(output_log_file, "%d\t%s\t%ld\t%ld\n", edit_distance, alignments[i]->contig, alignments[i]->record->core.pos,
+            fprintf(output_log_file, "%d\t%s\t%ld\t%ld\n", edit_distance, alignments[i]->contig,
+                    alignments[i]->record->core.pos,
                     alignments[i]->rfe);
         } else if (score_type == SCORE_TYPE_EDIT_DISTANCE) {
             fprintf(output_log_file, "%.2f\t%s\t%ld\t%ld\n", alignments[i]->score, alignments[i]->contig,
@@ -231,7 +233,7 @@ int main(int argc, char *argv[]) {
     // open file for saving reads that have to be corrected
     char output_log_path[200];
     snprintf(output_log_path, "%s.out.log", prefix);
-    FILE* output_log_file = fopen(output_log_path, "w+");
+    FILE *output_log_file = fopen(output_log_path, "w+");
     // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
     sam_hdr_t *sam_hdr = sam_hdr_read(fp);
@@ -272,7 +274,8 @@ int main(int argc, char *argv[]) {
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
                         fprintf(output_log_file, "#EDIT DISTANCE")
                         fprintf(output_log_file, "$\t%s\n", read_name);
-                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE, output_log_file);
+                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE,
+                                               output_log_file);
                     }
                     stList_destruct(merged_variant_read_blocks);
                     stHash_destruct(variant_ref_blocks_per_contig);
@@ -304,13 +307,14 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     // get the best alignment
-                    int best_idx = get_best_record(alignments, alignments_len, prim_margin_score, min_score,
-                                                   prim_margin_random);
+                    int best_idx = get_best_record_index(alignments, alignments_len, prim_margin_score, min_score,
+                                                         prim_margin_random);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
                         fprintf(output_log_file, "#MARKER SCORE")
                         fprintf(output_log_file, "$\t%s\n", read_name);
-                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER, output_log_file);
+                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER,
+                                               output_log_file);
                     }
                     stList_destruct(markers);
                 }

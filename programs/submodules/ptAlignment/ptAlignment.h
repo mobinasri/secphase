@@ -71,6 +71,26 @@ void ptAlignment_destruct(ptAlignment* alignment);
 bool ptAlignment_contain_supp(ptAlignment** alignments, int alignments_len);
 
 
+/**
+ * After setting alignment score values by calling calc_alignment_score
+ * this function can be called to get the index of the alignment
+ * with the highest score
+ *
+ * @param alignments            An array of alignments each of which saved as ptAlignment struct
+ * @param alignments_len        Length of alignments array
+ * @param prim_margin		    The score of the best alignment should be higher than the
+ * 				                score of the current primary alignment by this value
+ * @param min_score		        The minimum score of the best alignment. If the best alignment
+ * 				                had a score lower than this value the primary alignment will be
+ * 				                returned as the best alignment
+ * @param prim_margin_random	If the scores of the best alignment and current primary alignment
+ * 				                was closer than this value then one of them will be returned randomly
+ *
+ */
+
+int get_best_record_index(ptAlignment** alignments, int alignments_len, double prim_margin, double min_score, double prim_margin_random);
+
+
 void print_contigs(ptAlignment** alignments, int alignments_len);
 
 

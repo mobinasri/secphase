@@ -93,3 +93,28 @@ void print_contigs(ptAlignment **alignments, int alignments_len) {
     }
 }
 
+int get_best_record_index(ptAlignment **alignments, int alignments_len, double prim_margin, double min_score,
+                          double prim_margin_random) {
+    assert(alignments_len > 0);
+    if (alignments_len == 1) return 0;
+    double max_score = -DBL_MAX;
+    int max_idx = -1;
+    double prim_score = -DBL_MAX;
+    int prim_idx = -1;
+    for (int i = 0; i < alignments_len; i++) {
+        if ((alignments[i]->record->core.flag & BAM_FSECONDARY) == 0) {
+            prim_idx = i;
+            prim_score = alignments[i]->score;
+        } else if (max_score < alignments[i]->score) {
+            max_idx = i;
+            max_score = alignments[i]->score;
+        }
+    }
+    int rnd = rand() % 2; // 50% chance for rnd=0 (same for rnd=1)
+    if (abs(max_score - prim_score) < prim_margin_random) {
+        return rnd == 0 ? prim_idx : max_idx; // if the scores were closer than prim_margin_random return one randomly
+    }
+    if (prim_idx == -1 || max_score < (prim_score + prim_margin) || max_score < min_score) return prim_idx;
+    else return max_idx;
+}
+
