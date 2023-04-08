@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
-                        fprintf(output_log_file, "#EDIT DISTANCE")
+                        fprintf(output_log_file, "#EDIT DISTANCE");
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE,
                                                output_log_file);
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]) {
                                                          prim_margin_random);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
-                        fprintf(output_log_file, "#MARKER SCORE")
+                        fprintf(output_log_file, "#MARKER SCORE");
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER,
                                                output_log_file);
