@@ -13,6 +13,7 @@
 #include "vcf.h"
 #include "edlib.h"
 #include <time.h>
+#include <string.h>
 #include "ptBlock.h"
 #include "ptVariant.h"
 #include "ptAlignment.h"
@@ -105,7 +106,7 @@ int main(int argc, char *argv[]) {
                 vcfPath = optarg;
                 break;
             case 'P':
-                prefix = optarg;
+                strcpy(prefix, optarg);
                 break;
             case 'D':
                 debug = true;
@@ -114,7 +115,7 @@ int main(int argc, char *argv[]) {
                 preset_hifi = true;
                 baq_flag = true;
                 consensus = true;
-                threshold = 10; // indel size threshold
+                indel_threshold = 10; // indel size threshold
                 conf_d = 1e-4;
                 conf_e = 0.1;
                 conf_b = 20;
@@ -128,7 +129,7 @@ int main(int argc, char *argv[]) {
                 preset_ont = true;
                 baq_flag = true;
                 consensus = true;
-                threshold = 20; // indel size threshold
+                indel_threshold = 20; // indel size threshold
                 conf_d = 1e-3;
                 conf_e = 0.1;
                 conf_b = 20;
@@ -252,7 +253,7 @@ int main(int argc, char *argv[]) {
             // Secphase currently does not support supplementary alignments
             if ((alignments_len > 1) &&
                 (alignments_len <= 10) &&
-                !contain_supp(alignments, alignments_len)) {
+                !ptAlignment_contain_supp(alignments, alignments_len)) {
                 // Check if there is any variant block encompassed by any alignment
                 // If that is met then select the best alignment based on their edit distances
                 // to the variant blocks

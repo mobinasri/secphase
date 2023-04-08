@@ -77,7 +77,7 @@ void ptAlignment_destruct(ptAlignment *alignment) {
     free(alignment);
 }
 
-bool contain_supp(ptAlignment **alignments, int alignments_len) {
+bool ptAlignment_contain_supp(ptAlignment **alignments, int alignments_len) {
     for (int i = 0; i < alignments_len; i++) {
         if (alignments[i]->record->core.flag & BAM_FSUPPLEMENTARY) return 1;
     }
