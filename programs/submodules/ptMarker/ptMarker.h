@@ -296,7 +296,8 @@ void set_flanking_blocks(ptAlignment** alignments, int alignments_len, stList* m
  * find the consensus confident blocks using all previously
  * found confident blocks and flanking blocks. In other words
  * it takes the intersection of all sets of confident and
- * flanking blocks for a single read. There should exist one
+ * flanking blocks for a single read.
+ * Before calling this function there should exist one
  * set of confident blocks and one set of flanking blocks per
  * alignment. They can be set by calling the functions set_flanking_blocks
  * and set_confident_blocks
