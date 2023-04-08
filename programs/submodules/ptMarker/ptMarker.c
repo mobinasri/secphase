@@ -306,11 +306,11 @@ void calc_alignment_score(stList *markers, ptAlignment **alignments) {
 
             // p(all matches are real match) = (1-e_1) * (1-e_2) * ... (1-e_n1)
             // q(all matches are real match) = -rev(q_1) + -rev(q_2) + ... + -rev(q_n1)
-            alignments[marker->alignment_idx]->score -= reverse_quality(marker->base_q);
+            alignments[marker->alignment_idx]->score += -1 * reverse_quality(marker->base_q);
         } else {
             // p(all mismtaches are real match) = (e1/3) * (e2/3) * ... (en/3)
             // q(all mismatches are real match) = (-q1 - 10log(3)) + (-q2 - 10log(3)) + ... + (-qn - 10log(3))
-            alignments[marker->alignment_idx]->score -= -1 * marker->base_q - 10 * log(3);
+            alignments[marker->alignment_idx]->score += -1 * marker->base_q - 10 * log(3);
         }
         // p(all markers are real match for this alignment) = p(all matches are real match) * p(all mismtaches are real match)
         // p(all markers are real match for this alignment) = p(this alignment is correct)
