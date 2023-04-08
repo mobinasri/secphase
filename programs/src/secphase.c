@@ -22,28 +22,28 @@
 #define SCORE_TYPE_MARKER           0
 #define SCORE_TYPE_EDIT_DISTANCE    1
 
-void print_alignment_scores(ptAlignment **alignments, int alignments_len, int best_idx, int score_type, FILE *fout) {
+void print_alignment_scores(ptAlignment **alignments, int alignments_len, int best_idx, int score_type, FILE *output_log_file) {
     for (int i = 0; i < alignments_len; i++) {
         // change primary to secondary
         if ((alignments[i]->record->core.flag & BAM_FSECONDARY) == 0) {
-            fprintf(fout, "*\t");
+            fprintf(output_log_file, "*\t");
             alignments[i]->record->core.flag |= BAM_FSECONDARY;
         }
             //change secondary to primary for the best alignment
         else if (i == best_idx) {
-            fprintf(fout, "@\t");
+            fprintf(output_log_file, "@\t");
             alignments[i]->record->core.flag &= ~BAM_FSECONDARY;
-        } else fprintf(fout, "!\t");
+        } else fprintf(output_log_file, "!\t");
         if (score_type == SCORE_TYPE_MARKER) {
             int edit_distance = -1 * alignments[i]->score;
-            fprintf(fout, "%d\t%s\t%ld\t%ld\n", edit_distance, alignments[i]->contig, alignments[i]->record->core.pos,
+            fprintf(output_log_file, "%d\t%s\t%ld\t%ld\n", edit_distance, alignments[i]->contig, alignments[i]->record->core.pos,
                     alignments[i]->rfe);
         } else if (score_type == SCORE_TYPE_EDIT_DISTANCE) {
-            fprintf(fout, "%.2f\t%s\t%ld\t%ld\n", alignments[i]->score, alignments[i]->contig,
+            fprintf(output_log_file, "%.2f\t%s\t%ld\t%ld\n", alignments[i]->score, alignments[i]->contig,
                     alignments[i]->record->core.pos, alignments[i]->rfe);
         }
     }
-    fprintf(fout, "\n");
+    fprintf(output_log_file, "\n");
 }
 
 static struct option long_options[] =
@@ -227,6 +227,12 @@ int main(int argc, char *argv[]) {
                 get_timestamp());
         exit(EXIT_FAILURE);
     }
+
+    // open file for saving reads that have to be corrected
+    char output_log_path[200];
+    snprintf(output_log_path, "%s.out.log", prefix);
+    FILE* output_log_file = fopen(output_log_path, "w+");
+    // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
     sam_hdr_t *sam_hdr = sam_hdr_read(fp);
     bam1_t *b = bam_init1();
@@ -264,9 +270,9 @@ int main(int argc, char *argv[]) {
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
-                        fprintf(fout, "#EDIT DISTANCE")
-                        fprintf(fout, "$\t%s\n", read_name);
-                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE, fout);
+                        fprintf(output_log_file, "#EDIT DISTANCE")
+                        fprintf(output_log_file, "$\t%s\n", read_name);
+                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE, output_log_file);
                     }
                     stList_destruct(merged_variant_read_blocks);
                     stHash_destruct(variant_ref_blocks_per_contig);
@@ -302,9 +308,9 @@ int main(int argc, char *argv[]) {
                                                    prim_margin_random);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
-                        fprintf(fout, "#MARKER SCORE")
-                        fprintf(fout, "$\t%s\n", read_name);
-                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER, fout);
+                        fprintf(output_log_file, "#MARKER SCORE")
+                        fprintf(output_log_file, "$\t%s\n", read_name);
+                        print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER, output_log_file);
                     }
                     stList_destruct(markers);
                 }
@@ -330,6 +336,7 @@ int main(int argc, char *argv[]) {
     sam_hdr_destroy(sam_hdr);
     sam_close(fp);
     bam_destroy1(b);
+    fclose(output_log_file);
 }
 
 //main();
