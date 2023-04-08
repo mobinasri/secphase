@@ -15,6 +15,8 @@
 #include "vcf.h"
 #include "edlib.h"
 #include <time.h>
+#include <stdlib.h>
+#include <string.h>
 #include "ptBlock.h"
 #include "ptAlignment.h"
 
