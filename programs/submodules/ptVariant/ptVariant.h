@@ -307,8 +307,7 @@ void ptVariant_save_variant_ref_blocks(stHash *variant_ref_blocks, char *bed_pat
  *
  */
 stList *
-ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len,
-                                         sam_hdr_t *sam_hdr);
+ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment **alignments, int alignments_len);
 
 
 /**
@@ -323,7 +322,8 @@ ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment
  * @param sam_hdr		SAM header
  *
  */
-void set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t* fai);
+void
+set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t *fai);
 
 /**
  * If there is at least one alignment that encompasses a variant block
