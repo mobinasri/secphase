@@ -920,11 +920,8 @@ stList *ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks_per_
 
 void set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t* fai) {
     // get edit distances of the variant blocks for each alignment
-    int total_edit_distance;
     for (int i = 0; i < alignments_len; i++) {
-        char *contig = sam_hdr_tid2name(sam_hdr, alignments[i]->record->core.tid);
-        total_edit_distance = get_total_edit_distance(alignments[i], fai, contig, read_blocks_merged);
-        alignments[i]->score = -1 * total_edit_distance;
+        alignments[i]->score = -1 * get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged);
     }
 
 }
