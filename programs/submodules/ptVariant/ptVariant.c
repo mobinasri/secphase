@@ -938,7 +938,7 @@ bool overlap_variant_ref_blocks(stHash *variant_ref_blocks_per_contig, ptAlignme
         if ((last_block->rfe < alignments[i]->rfs) || (alignments[i]->rfe < first_block->rfs)) continue;
         // Check all blocks
         for (int j = 0; j < stList_length(blocks_contig); j++) {
-            ptBlock *block = stList_get(blocks_contig, 0);
+            ptBlock *block = stList_get(blocks_contig, j);
             // If a block was completely within an alignment then return true
             if ((alignments[i]->rfs <= block->rfs) && (block->rfe <= alignments[i]->rfe)) return true;
         }
