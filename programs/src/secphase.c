@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
 
     // open file for saving reads that have to be corrected
     char output_log_path[200];
-    snprintf(output_log_path, "%s.out.log", prefix);
+    snprintf(output_log_path, 200, "%s.out.log", prefix);
     FILE *output_log_file = fopen(output_log_path, "w+");
     // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
