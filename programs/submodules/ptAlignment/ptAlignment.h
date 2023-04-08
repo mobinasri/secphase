@@ -39,11 +39,11 @@ typedef struct {
  * Construct a ptAlignment struct
  *
  * @param record 	Alignment record
- * @param score		Initial score of the alignment (usually just 0.0)
+ * @param sam_hdr   SAM header
  * @return alignment	Alignment saved as a ptAlignment struct
  *
  */
-ptAlignment* ptAlignment_construct(bam1_t* record, double score);
+ptAlignment* ptAlignment_construct(bam1_t* record, sam_hdr_t *sam_hdr);
 
 
 /**
@@ -71,7 +71,7 @@ void ptAlignment_destruct(ptAlignment* alignment);
 bool ptAlignment_contain_supp(ptAlignment** alignments, int alignments_len);
 
 
-void print_contigs(ptAlignment** alignments, int alignments_len, sam_hdr_t* h);
+void print_contigs(ptAlignment** alignments, int alignments_len);
 
 
 #endif /* PT_ALIGNMENT_H */

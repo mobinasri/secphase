@@ -14,7 +14,8 @@ ptAlignment *ptAlignment_construct(bam1_t *record, sam_hdr_t *sam_hdr) {
 }
 
 void ptAlignment_init_coordinates(ptAlignment *alignment) {
-    ptCigarIt *cigar_it = ptCigarIt_construct(alignment->record, true, true);
+    bam1_t *b = alignment->record;
+    ptCigarIt *cigar_it = ptCigarIt_construct(b, true, true);
     uint8_t *quality = bam_get_qual(b);
     while (ptCigarIt_next(cigar_it)) {
         //set the start coordinates of the alignment
