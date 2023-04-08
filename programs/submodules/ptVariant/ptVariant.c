@@ -858,7 +858,7 @@ void ptVariant_save_variant_ref_blocks(stHash *variant_ref_blocks, char *bed_pat
         for (int i = 0; i < stList_length(contig_blocks); i++) {
             block = stList_get(contig_blocks, i);
             vars = (stList *) block->data;
-            fprintf(fp, "%s\t%d\t%d\tN_VARS=%d\n", contig, block->rfs, block->rfe + 1, stList_get(vars));
+            fprintf(fp, "%s\t%d\t%d\tN_VARS=%d\n", contig, block->rfs, block->rfe + 1, stList_length(vars));
         }
     }
 }
