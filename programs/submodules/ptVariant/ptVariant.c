@@ -933,7 +933,7 @@ bool overlap_variant_ref_blocks(stHash *variant_ref_blocks_per_contig, ptAlignme
         // If there is no block then continue
         if (blocks_contig == NULL || stList_length(blocks_contig) == 0) continue;
         ptBlock *first_block = stList_get(blocks_contig, 0);
-        ptBlock *last_block = stList_get(blocks_contig, stList_length(blocks_contig));
+        ptBlock *last_block = stList_get(blocks_contig, stList_length(blocks_contig) - 1);
         // If the alignment ends after the first block or starts after the last block then continue
         if ((last_block->rfe < alignments[i]->rfs) || (alignments[i]->rfe < first_block->rfs)) continue;
         // Check all blocks
