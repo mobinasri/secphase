@@ -133,9 +133,9 @@ void ptVariant_print(ptVariant *variant) {
             break;
     }
     printf("contig\tpos\tvaf\tgq\tps\n");
-    printf("%s\t%d\t%.2f\t%d\t%d\n", variant->contig, variant->pos, variant->vaf, variant->gq, variant->ps);
+    printf("%s\t%d\t%.2f\t%d\t%ld\n", variant->contig, variant->pos, variant->vaf, variant->gq, variant->ps);
     for (int i = 0; i < variant->gt_len; i++) {
-        printf("Genotype %d:%d %s\n", i, variant->gt[i], stList_get(variant->alleles, variant->gt[i]));
+        printf("Genotype %d:%d %s\n", i, variant->gt[i], (char*) stList_get(variant->alleles, variant->gt[i]));
         //printf("Genotype %d\n",variant->gt[i]);
     }
 }

@@ -37,11 +37,11 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
         } else fprintf(output_log_file, "!\t");
         if (score_type == SCORE_TYPE_MARKER) {
             int edit_distance = -1 * alignments[i]->score;
-            fprintf(output_log_file, "%d\t%s\t%ld\t%ld\n", edit_distance, alignments[i]->contig,
+            fprintf(output_log_file, "%d\t%s\t%ld\t%d\n", edit_distance, alignments[i]->contig,
                     alignments[i]->record->core.pos,
                     alignments[i]->rfe);
         } else if (score_type == SCORE_TYPE_EDIT_DISTANCE) {
-            fprintf(output_log_file, "%.2f\t%s\t%ld\t%ld\n", alignments[i]->score, alignments[i]->contig,
+            fprintf(output_log_file, "%.2f\t%s\t%ld\t%d\n", alignments[i]->score, alignments[i]->contig,
                     alignments[i]->record->core.pos, alignments[i]->rfe);
         }
     }
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
 
     if (debug == true) {
         char bed_path_ref_blocks[50];
-        snprintf(bed_path_ref_blocks, "%s.variant_ref_blocks.bed", prefix);
+        snprintf(bed_path_ref_blocks, 50, "%s.variant_ref_blocks.bed", prefix);
         ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     }
 
