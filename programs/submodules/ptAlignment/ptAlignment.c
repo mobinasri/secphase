@@ -120,7 +120,7 @@ int get_best_record_index(ptAlignment **alignments, int alignments_len, double p
     if (abs(max_score - prim_score) < prim_margin_random) {
         return rnd == 0 ? prim_idx : max_idx; // if the scores were closer than prim_margin_random return one randomly
     }
-    if (prim_idx == -1 || max_score < (prim_score + prim_margin) || max_score < min_score) return prim_idx;
+    if (prim_idx == -1 || max_score <= (prim_score + prim_margin) || max_score < min_score) return prim_idx;
     else return max_idx;
 }
 
