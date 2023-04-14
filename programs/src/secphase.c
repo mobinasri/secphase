@@ -216,9 +216,9 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr,
                         "         --minQ, -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
                 fprintf(stderr,
-                        "         --primMarginScore, -p         Minimum margin between the consistensy score of primary and secondary alignment to select the secondary alignment [Default: 50]\n");
+                        "         --primMarginScore, -p         Minimum margin between the consistency score of primary and secondary alignment to select the secondary alignment [Default: 50]\n");
                 fprintf(stderr,
-                        "         --primMarginRandom, -r         Maximum margin between the consistensy score of primary and secondary alignment to select one randomly [Default: 50]\n");
+                        "         --primMarginRandom, -r         Maximum margin between the consistency score of primary and secondary alignment to select one randomly [Default: 50]\n");
 
                 fprintf(stderr,
                         "         --minScore, -n         Minimum marker score of the selected secondary alignment [Default: -50]\n");
