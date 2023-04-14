@@ -50,26 +50,28 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
 
 static struct option long_options[] =
         {
-                {"inputBam",         required_argument, NULL, 'i'},
-                {"inputFasta",       required_argument, NULL, 'f'},
-                {"inputVcf",         required_argument, NULL, 'v'},
-                {"baq",              no_argument,       NULL, 'q'},
-                {"gapOpen",          required_argument, NULL, 'd'},
-                {"gapExt",           required_argument, NULL, 'e'},
-                {"bandwidth",        required_argument, NULL, 'b'},
-                {"consensus",        no_argument,       NULL, 'c'},
-                {"indelThreshold",   required_argument, NULL, 't'},
-                {"initQ",            required_argument, NULL, 's'},
-                {"minQ",             required_argument, NULL, 'm'},
-                {"primMarginScore",  required_argument, NULL, 'p'},
-                {"primMarginRandom", required_argument, NULL, 'r'},
-                {"minScore",         required_argument, NULL, 'n'},
-                {"hifi",             no_argument,       NULL, 'x'},
-                {"ont",              no_argument,       NULL, 'y'},
-                {"minVariantMargin", required_argument, NULL, 'g'},
-                {"prefix",           required_argument, NULL, 'P'},
-                {"debug",            no_argument,       NULL, 'D'},
-                {NULL,               0,                 NULL, 0}
+                {"inputBam",          required_argument, NULL, 'i'},
+                {"inputFasta",        required_argument, NULL, 'f'},
+                {"inputVcf",          required_argument, NULL, 'v'},
+                {"disableMarkerMode", required_argument, NULL, 'M'},
+                {"baq",               no_argument,       NULL, 'q'},
+                {"gapOpen",           required_argument, NULL, 'd'},
+                {"gapExt",            required_argument, NULL, 'e'},
+                {"bandwidth",         required_argument, NULL, 'b'},
+                {"consensus",         no_argument,       NULL, 'c'},
+                {"indelThreshold",    required_argument, NULL, 't'},
+                {"initQ",             required_argument, NULL, 's'},
+                {"minQ",              required_argument, NULL, 'm'},
+                {"primMarginScore",   required_argument, NULL, 'p'},
+                {"primMarginRandom",  required_argument, NULL, 'r'},
+                {"minScore",          required_argument, NULL, 'n'},
+                {"hifi",              no_argument,       NULL, 'x'},
+                {"ont",               no_argument,       NULL, 'y'},
+                {"minVariantMargin",  required_argument, NULL, 'g'},
+                {"prefix",            required_argument, NULL, 'P'},
+                {"debug",             no_argument,       NULL, 'D'},
+                {"variantBed",        no_argument,       NULL, 'B'},
+                {NULL,                0,                 NULL, 0}
         };
 
 
@@ -89,14 +91,16 @@ int main(int argc, char *argv[]) {
     double conf_b = 20;
     char *inputPath;
     char *fastaPath;
+    char *variantBedPath;
     char *vcfPath;
     char prefix[50] = "secphase";
     bool debug = false;
     char *program;
     bool preset_ont = false;
     bool preset_hifi = false;
+    bool marker_mode = true;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-    while (~(c = getopt_long(argc, argv, "i:p:P:Df:v:qd:e:b:n:r:m:ct:s:g:xyh", long_options, NULL))) {
+    while (~(c = getopt_long(argc, argv, "i:p:P:Df:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
         switch (c) {
             case 'i':
                 inputPath = optarg;
@@ -177,6 +181,12 @@ int main(int argc, char *argv[]) {
             case 'g':
                 min_var_margin = atoi(optarg);
                 break;
+            case 'B':
+                variantBedPath = atoi(optarg);
+                break;
+            case 'M':
+                marker_mode = false;
+                break;
             default:
                 if (c != 'h') fprintf(stderr, "[E::%s] undefined option %c\n", __func__, c);
             help:
@@ -186,9 +196,13 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "         --inputFasta, -f         Input FASTA file\n");
                 fprintf(stderr, "         --inputVcf, -v         Input phased VCF file\n");
                 fprintf(stderr,
-                        "         --hifi, -x         hifi preset params [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)\n");
+                        "         --variantBed, -B         Input BED file for subsetting phased variants\n");
                 fprintf(stderr,
-                        "         --ont, -y        ont present params [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -r10 -n -50] (Only one of --hifi or --ont should be enabled) \n");
+                        "         --disableMarkerMode, -M         If alignments do not overlap with variants Secphase will not switch to marker mode\n");
+                fprintf(stderr,
+                        "         --hifi, -x         hifi preset params (only for marker mode) [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)\n");
+                fprintf(stderr,
+                        "         --ont, -y        ont present params (only for marker mode) [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -r10 -n -50] (Only one of --hifi or --ont should be enabled) \n");
                 fprintf(stderr, "         --baq, -q         Calculate BAQ [Disabled by default]\n");
                 fprintf(stderr, "         --gapOpen, -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]\n");
                 fprintf(stderr, "         --gapExt, -e         Gap extension [Default: 0.1]\n");
@@ -216,7 +230,7 @@ int main(int argc, char *argv[]) {
 
 
     faidx_t *fai = fai_load(fastaPath);
-    stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, fai, min_var_margin);
+    stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath, fai, min_var_margin);
 
     if (debug == true) {
         char bed_path_ref_blocks[50];

@@ -92,10 +92,6 @@ void ptVariant_append_gt(ptVariant *variant, int8_t gt);
 ptVariant *ptVariant_copy(ptVariant *src);
 
 
-// make a copy of a list of variants
-stList *ptVariant_stList_copy(stList *variants);
-
-
 // Returns true if two variants are at the same location (and of course same contig/chrom) otherwise false
 bool ptVariant_is_equal(ptVariant *var1, ptVariant *var2);
 
@@ -335,5 +331,14 @@ set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignment
  * @param variant_ref_blocks_per_contig     Output of parse_variants_and_extract_blocks()
  */
 bool overlap_variant_ref_blocks(stHash *variant_ref_blocks_per_contig, ptAlignment **alignments, int alignments_len);
+
+// defined for ptBlock->extend_data
+void ptVariant_extend_stList(void *curr_vars_, void* new_vars_);
+
+// defined for ptBlock->copy_data
+void *ptVariant_copy_stList(void *vars_);
+
+// defined for ptBlock->destruct_data
+void *ptVariant_destruct_stList(void *vars_);
 
 #endif /* PT_VARIANT_H */

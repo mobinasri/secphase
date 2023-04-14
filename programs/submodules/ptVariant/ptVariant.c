@@ -84,15 +84,6 @@ ptVariant *ptVariant_copy(ptVariant *src) {
 }
 
 
-stList *ptVariant_stList_copy(stList *variants) {
-    stList *variants_copy = stList_construct3(0, ptVariant_destruct);
-    for (int i = 0; i < stList_length(variants); i++) {
-        stList_append(variants_copy, ptVariant_copy(stList_get(variants, i)));
-    }
-    return variants_copy;
-}
-
-
 bool ptVariant_is_equal(ptVariant *var1, ptVariant *var2) {
     return (var1->pos == var2->pos) && (strcmp(var1->contig, var2->contig) == 0);
 }
@@ -135,7 +126,7 @@ void ptVariant_print(ptVariant *variant) {
     printf("contig\tpos\tvaf\tgq\tps\n");
     printf("%s\t%d\t%.2f\t%d\t%ld\n", variant->contig, variant->pos, variant->vaf, variant->gq, variant->ps);
     for (int i = 0; i < variant->gt_len; i++) {
-        printf("Genotype %d:%d %s\n", i, variant->gt[i], (char*) stList_get(variant->alleles, variant->gt[i]));
+        printf("Genotype %d:%d %s\n", i, variant->gt[i], (char *) stList_get(variant->alleles, variant->gt[i]));
         //printf("Genotype %d\n",variant->gt[i]);
     }
 }
@@ -367,60 +358,38 @@ stHash *extract_variant_ref_blocks(stList *variants, const faidx_t *fai, int min
         // make a list of variants for the new block
         stList *vars = stList_construct3(0, ptVariant_destruct);
         stList_append(vars, ptVariant_copy(variant));
-        ptBlock_add_data(block, vars, stList_destruct); // add variant records as the block data
-        int i_pre = stList_length(blocks) - 1;
-        // This loop is for expanding the currect block
-        // if it had overlap with the previous blocks.
-        // Once this loop reaches a previous block
-        // with no overlap we can be sure that it
-        // does not exist any overlapping blocks before
-        // that too so the loop will break there.
-        // After the loop finished we remove all the overlapping blocks
-        // and add the new block that spans all of them.
-        for (; 0 <= i_pre; i_pre--) {
-            ptBlock *pre_block = stList_get(blocks, i_pre);
-            stList *pre_vars = (stList *) pre_block->data;
-            ptVariant *pre_var0 = stList_get(pre_vars, 0);
-            // check for overlap with previous block
-            if (pre_block != NULL &&
-                strcmp(variant->contig, pre_var0->contig) == 0 &&
-                pre_block->rfs <= block->rfe &&
-                block->rfs <= pre_block->rfe) {
-                block->rfs = min(pre_block->rfs, block->rfs); // expand the start coordinate
-                block->rfe = max(pre_block->rfe, block->rfe); // expand the end coordinate
-                assert(pre_block->data != NULL);
-                // copy variants to the new expanded block
-                for (int j = 0; j < stList_length(pre_vars); j++) {
-                    ptVariant *var = stList_get(pre_vars, j);
-                    stList_append((stList *) block->data, ptVariant_copy(var)); // add variant record
-                }
-            } else {
-                break;
-            }
-        }
-        /*if (stList_length(blocks) > i_pre + 1){
-            printf("XXXXXXXXXXXXXXXx\n");
-            stList* x=(stList*) block->data;
-            for(int j=0; j < stList_length(x); j++){
-                ptVariant_print(stList_get(x,j));
-            }
-        }*/
-        // remove previous blocks that had overlap
-        stList_removeInterval(blocks, i_pre + 1, stList_length(blocks) - i_pre - 1);
+        // save variant records as the block data
+        ptBlock_set_data(block, (void *) vars, ptVariant_destruct_stList, ptVariant_copy_stList,
+                         ptVariant_extend_stList);
         stList_append(blocks, block);
         pre_variant = variant;
     }
 
     // sort variants in each block
+    // sort blocks
+    // merge overlapping blocks
     stHashIterator *it = stHash_getIterator(variant_blocks);
     char *key;
     while ((key = stHash_getNext(it)) != NULL) {
-        blocks = stHash_search(variant_blocks, key);
+        // stHash_remove does two things:
+        // remove the key from table
+        // return the value
+        // we will sort and merge blocks (the returned value)
+        // then insert the same key but this time with merged blocks as its value
+        blocks = stHash_remove(variant_blocks, key);
         for (int i = 0; i < stList_length(blocks); i++) {
             block = stList_get(blocks, i);
             //printf("##%d %d\n", i, stList_length(block->data));
             stList_sort((stList *) block->data, ptVariant_cmp);
         }
+        // sort blocks by rfs
+        stList_sort(blocks, ptBlock_cmp_rfs);
+        // merge blocks by rfs and rfe
+        stList *merged_blocks = ptBlock_merge_blocks(blocks, ptBlock_get_rfs, ptBlock_get_rfe, ptBlock_set_rfe);
+        // insert the same key
+        stHash_insert(variant_blocks, key, merged_blocks);
+        // destroy old unmerged blocks
+        stList_destruct(blocks);
     }
     return variant_blocks;
 }
@@ -599,7 +568,9 @@ stList *project_ref_blocks_to_read(ptAlignment *alignment, stList *ref_variant_b
                     // make a copy of all the variants in the ref block
                     stList *variants_copy = ptVariant_stList_copy((stList *) ref_block->data);
                     // add all copied variants to the read block
-                    ptBlock_add_data(read_block, variants_copy, stList_destruct);
+                    ptBlock_set_data(read_block, (void *) variants_copy, ptVariant_destruct_stList,
+                                     ptVariant_copy_stList,
+                                     ptVariant_extend_stList);
                     //printf("read block added: %d\t%d\n", read_block->rds_f, read_block->rde_f);
                     // add read block
                     stList_append(read_blocks, read_block);
@@ -635,60 +606,8 @@ stList *project_ref_blocks_to_read(ptAlignment *alignment, stList *ref_variant_b
 }
 
 stList *merge_variant_read_blocks(stList *blocks) {
-    stList *blocks_merged = stList_construct3(0, ptBlock_destruct);
-    if (stList_length(blocks) == 0) return blocks_merged;
-    ptBlock *b = NULL;
-    ptBlock *b_merged = NULL;
-    for (int i = 0; i < stList_length(blocks); i++) {
-        b = stList_get(blocks, i);
-        //printf("%d\t%d\n", b->rds_f, b->rde_f);
-        if (i == 0) { // Initiate b_merged for the first block
-            b_merged = ptBlock_copy(b, ptVariant_stList_copy);
-            continue;
-        }
-        if (b_merged->rde_f < b->rds_f) {// no overlap with previous merged block
-            //save the merged block
-            stList_append(blocks_merged, b_merged);
-            // Initiate a new merged block
-            b_merged = ptBlock_copy(b, ptVariant_stList_copy);
-        } else { //there is overlap
-            b_merged->rde_f = b->rde_f; // extend end pos of the merged block
-            // add new variants if there is any
-            stList *new_vars = (stList *) b->data;
-            stList *curr_vars = (stList *) b_merged->data;
-            for (int j = 0; j < stList_length(new_vars); j++) {
-                ptVariant *new_var = stList_get(new_vars, j);
-                // if the new variant does not exist make a copy and add
-                // to the variants of the merged block
-                if (!ptVariant_exist_in_list(new_var, curr_vars)) {
-                    stList_append(curr_vars, ptVariant_copy(new_var));
-                }
-            }
-        }
-    }
-
-    /*printf("##########################\n");
-    for (int i = 0; i < stList_length(blocks_merged); i++){
-        b = stList_get(blocks_merged, i);
-                printf("%d\t%d\n", b->rde_f, b->rds_f);
-    }*/
-
-    // Add the last merged block
-    if (b_merged) {
-        stList_append(blocks_merged, b_merged);
-    }
-
-    /*printf("##########################\n");
-    printf("stList_length(blocks_merged)=%d\n",stList_length(blocks_merged));
-        for (int i = 0; i < stList_length(blocks_merged); i++){
-                b = stList_get(blocks_merged, i);
-                printf("%d\t%d\n", b->rde_f, b->rds_f);
-        for(int j=0; j <stList_length((stList*) b->data); j++){
-                        ptVariant_print(stList_get((stList*) b->data, j));
-                }
-        }*/
-
-    return blocks_merged;
+    // merge blocks by rds_f and rde_f
+    return ptBlock_merge_blocks(blocks, ptBlock_get_rds_f, ptBlock_get_rde_f, ptBlock_set_rde_f);;
 }
 
 int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block) {
@@ -787,7 +706,8 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
                         stList_append(kept_variants, ptVariant_copy(variant));
                     }
                 }
-                ptBlock_add_data(block, (void *) kept_variants, stList_destruct);
+                ptBlock_set_data(block, (void *) kept_variants, ptVariant_destruct_stList, ptVariant_copy_stList,
+                                 ptVariant_extend_stList);
                 //printf("Kept variants %d\n", stList_length(kept_variants));
                 //for(int k=0; k < stList_length(kept_variants);k++){
                 //	ptVariant_print(stList_get(kept_variants,k));
@@ -821,11 +741,22 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
 }
 
 
-stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, faidx_t *fai, int min_margin) {
+stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin) {
     stList *phased_variants = read_phased_variants(vcf_path, true);
     fprintf(stdout, "[%s] Number of parsed phased variants = %d\n", get_timestamp(), stList_length(phased_variants));
-    stList *selected_variants = filter_ref_variants(phased_variants);
-    fprintf(stdout, "[%s] Number of selected variants = %d\n", get_timestamp(), stList_length(selected_variants));
+
+    stHash *blocks_per_contig = ptBlock_parse_bed(bed_path);
+    fprintf(stdout, "[%s] Total length of parsed bed tracks = %d\n", get_timestamp(), ptBlock_get_total_length_by_rf(blocks_per_contig));
+
+    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+    fprintf(stdout, "[%s] Total length of merged bed tracks = %d\n", get_timestamp(), ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
+
+    stList* intersected_variants = ptVariant_subset_stList(phased_variants, merged_blocks_per_contig);
+    fprintf(stdout, "[%s] Number of intersected variants = %d\n", get_timestamp(), stList_length(intersected_variants));
+
+    stList *selected_variants = filter_ref_variants(subset_phased_variants);
+    fprintf(stdout, "[%s] Number of selected (No REF) variants = %d\n", get_timestamp(), stList_length(selected_variants));
+
     stHash *variant_ref_blocks = extract_variant_ref_blocks(selected_variants, fai, min_margin);
     fprintf(stdout, "[%s] Variant blocks are created on the reference coordinates (min_margin = %d).\n",
             get_timestamp(), min_margin);
@@ -833,6 +764,9 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, faidx_t *fai
     // We can free these lists because variant_ref_blocks has all the necessary variants
     stList_destruct(phased_variants);
     stList_destruct(selected_variants);
+    stList_destruct(intersected_variants);
+    stHash_destruct(blocks_per_contig);
+    stHash_destruct(merged_blocks_per_contig);
 
     return variant_ref_blocks;
 
@@ -894,7 +828,7 @@ stList *ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks_per_
             // add block only if it is within the region which has alignments
             // to all haplotypes
             if ((max_rds_f <= b->rds_f) && (b->rde_f <= min_rde_f)) {
-                stList_append(all_read_blocks, ptBlock_copy(b, ptVariant_stList_copy));
+                stList_append(all_read_blocks, ptBlock_copy(b));
             }
         }
     }
@@ -917,10 +851,12 @@ stList *ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks_per_
 }
 
 
-void set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t* fai) {
+void
+set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t *fai) {
     // get edit distances of the variant blocks for each alignment
     for (int i = 0; i < alignments_len; i++) {
-        alignments[i]->score = -1 * get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged);
+        alignments[i]->score =
+                -1 * get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged);
     }
 
 }
@@ -947,4 +883,61 @@ bool overlap_variant_ref_blocks(stHash *variant_ref_blocks_per_contig, ptAlignme
 }
 
 
+void ptVariant_extend_stList(void *curr_vars_, void *new_vars_) {
+    stList *curr_vars = (stList *) curr_vars_;
+    stList *new_vars = (stList *) new_vars_;
+    for (int i = 0; i < stList_length(new_vars); i++) {
+        ptVariant *new_var = stList_get(new_vars, i);
+        // if the new variant does not exist make a copy and add
+        // to the first variants list
+        if (!ptVariant_exist_in_list(new_var, curr_vars)) {
+            stList_append(curr_vars, ptVariant_copy(new_var));
+        }
+    }
+}
 
+
+void *ptVariant_copy_stList(void *vars_) {
+    stList *vars = (stList *) vars_;
+    stList *vars_copy = stList_construct3(0, ptVariant_destruct);
+    for (int i = 0; i < stList_length(vars); i++) {
+        stList_append(vars_copy, ptVariant_copy(stList_get(vars, i)));
+    }
+    return (void *) vars_copy;
+}
+
+void *ptVariant_destruct_stList(void *vars_) {
+    stList *vars = (stList *) vars_;
+    stList_destruct(vars);
+}
+
+
+// variants should be sorted by contig and pos
+// blocks should be sorted by rfs
+stList *ptVariant_subset_stList(stList *variants, stHash *blocks_per_contig) {
+    char contig[50];
+    contig[0] = '\0';
+    int j = 0;
+    ptBlock *block;
+    stList *blocks;
+    ptVariant *variant;
+    stList *subset_variants = stList_construct3(0, ptVariant_destruct);
+    for (int i = 0; i < stList_length(variants); i++) {
+        variant = stList_get(variants, i);
+        if (strcmp(contig, variant->contig) != 0) {
+            strcpy(contig, variant->contig);
+            blocks = stHash_search(blocks_per_contig, contig);
+            j = 0;
+            block = stList_get(blocks, j);
+        }
+        while (block->rfe < variant->pos && j < stList_length(blocks) - 1) {
+            j += 1;
+            block = stList_get(blocks, j);
+        }
+        if (block->rfe < variant->pos) continue;
+        if (block->rfs <= variant->pos && variant->pos <= block->rfe) {
+            stList_append(subset_variants, ptVariant_copy(variant));
+        }
+    }
+    return subset_variants;
+}
