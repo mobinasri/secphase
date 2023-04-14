@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
                     stList_destruct(merged_variant_read_blocks);
                 }
                     // If there is no overlap with variant blocks go to the marker consistency mode
-                else {
+                else if(marker_mode) {
                     stList *markers = ptMarker_get_initial_markers(alignments, alignments_len, min_q);
                     remove_all_mismatch_markers(&markers, alignments_len);
                     sort_and_fill_markers(&markers, alignments, alignments_len);
