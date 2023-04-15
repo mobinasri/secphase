@@ -745,25 +745,28 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
     stList *phased_variants = read_phased_variants(vcf_path, true);
     fprintf(stdout, "[%s] Number of parsed phased variants = %d\n", get_timestamp(), stList_length(phased_variants));
 
+    stHash *blocks_per_contig;
+    stHash *merged_blocks_per_contig;
+    stList *intersected_variants;
     if (bed_path != NULL) {
-        stHash *blocks_per_contig = ptBlock_parse_bed(bed_path);
+        blocks_per_contig = ptBlock_parse_bed(bed_path);
         fprintf(stdout, "[%s] Total length of parsed bed tracks = %d\n", get_timestamp(),
                 ptBlock_get_total_length_by_rf(blocks_per_contig));
 
-        stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+        merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
         fprintf(stdout, "[%s] Total length of merged bed tracks = %d\n", get_timestamp(),
                 ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
 
-        stList *intersected_variants = ptVariant_subset_stList(phased_variants, merged_blocks_per_contig);
+        intersected_variants = ptVariant_subset_stList(phased_variants, merged_blocks_per_contig);
         fprintf(stdout, "[%s] Number of intersected variants = %d\n", get_timestamp(),
                 stList_length(intersected_variants));
-    }
-    else{
-        stList * intersected_variants = phased_variants;
+    } else {
+        stList *intersected_variants = phased_variants;
     }
 
     stList *selected_variants = filter_ref_variants(intersected_variants);
-    fprintf(stdout, "[%s] Number of selected (No REF) variants = %d\n", get_timestamp(), stList_length(selected_variants));
+    fprintf(stdout, "[%s] Number of selected (No REF) variants = %d\n", get_timestamp(),
+            stList_length(selected_variants));
 
     stHash *variant_ref_blocks = extract_variant_ref_blocks(selected_variants, fai, min_margin);
     fprintf(stdout, "[%s] Variant blocks are created on the reference coordinates (min_margin = %d).\n",
