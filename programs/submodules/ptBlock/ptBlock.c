@@ -146,6 +146,8 @@ stHash *ptBlock_parse_bed(char *bed_path) {
     size_t len;
     char *line = NULL;
     char *contig_name;
+    int start;
+    int end;
     char *token;
     ptBlock *block = NULL;
     stList *blocks = NULL;
