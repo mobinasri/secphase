@@ -91,8 +91,8 @@ int main(int argc, char *argv[]) {
     double conf_b = 20;
     char *inputPath;
     char *fastaPath;
-    char *variantBedPath;
-    char *vcfPath;
+    char *variantBedPath = NULL;
+    char *vcfPath = NULL;
     char prefix[50] = "secphase";
     bool debug = false;
     char *program;
@@ -230,13 +230,21 @@ int main(int argc, char *argv[]) {
 
 
     faidx_t *fai = fai_load(fastaPath);
-    stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath, fai,
-                                                                                        min_var_margin);
+    if (vcfPath != NULL) {
+        stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
+                                                                                            fai,
+                                                                                            min_var_margin);
+        if (debug == true) {
+            char bed_path_ref_blocks[200];
+            snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
+            ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
+        }
+    } else {
 
-    if (debug == true) {
-        char bed_path_ref_blocks[200];
-        snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
-        ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
+        // if no vcf is given just make an empty table
+        variant_ref_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                          (void (*)(void *)) stList_destruct);
+
     }
 
     if (preset_ont && preset_hifi) {

@@ -275,7 +275,7 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
  * @param min_margin		Minimum size of the block surrounding each variant
  *
  */
-stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, faidx_t *fai, int min_margin);
+stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char* bed_path, faidx_t *fai, int min_margin);
 
 
 //

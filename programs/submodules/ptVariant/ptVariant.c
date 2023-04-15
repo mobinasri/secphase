@@ -745,14 +745,22 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
     stList *phased_variants = read_phased_variants(vcf_path, true);
     fprintf(stdout, "[%s] Number of parsed phased variants = %d\n", get_timestamp(), stList_length(phased_variants));
 
-    stHash *blocks_per_contig = ptBlock_parse_bed(bed_path);
-    fprintf(stdout, "[%s] Total length of parsed bed tracks = %d\n", get_timestamp(), ptBlock_get_total_length_by_rf(blocks_per_contig));
+    if (bed_path != NULL) {
+        stHash *blocks_per_contig = ptBlock_parse_bed(bed_path);
+        fprintf(stdout, "[%s] Total length of parsed bed tracks = %d\n", get_timestamp(),
+                ptBlock_get_total_length_by_rf(blocks_per_contig));
 
-    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
-    fprintf(stdout, "[%s] Total length of merged bed tracks = %d\n", get_timestamp(), ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
+        stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+        fprintf(stdout, "[%s] Total length of merged bed tracks = %d\n", get_timestamp(),
+                ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
 
-    stList* intersected_variants = ptVariant_subset_stList(phased_variants, merged_blocks_per_contig);
-    fprintf(stdout, "[%s] Number of intersected variants = %d\n", get_timestamp(), stList_length(intersected_variants));
+        stList *intersected_variants = ptVariant_subset_stList(phased_variants, merged_blocks_per_contig);
+        fprintf(stdout, "[%s] Number of intersected variants = %d\n", get_timestamp(),
+                stList_length(intersected_variants));
+    }
+    else{
+        stList * intersected_variants = phased_variants;
+    }
 
     stList *selected_variants = filter_ref_variants(intersected_variants);
     fprintf(stdout, "[%s] Number of selected (No REF) variants = %d\n", get_timestamp(), stList_length(selected_variants));
@@ -764,9 +772,11 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
     // We can free these lists because variant_ref_blocks has all the necessary variants
     stList_destruct(phased_variants);
     stList_destruct(selected_variants);
-    stList_destruct(intersected_variants);
-    stHash_destruct(blocks_per_contig);
-    stHash_destruct(merged_blocks_per_contig);
+    if (bed_path != NULL) {
+        stList_destruct(intersected_variants);
+        stHash_destruct(blocks_per_contig);
+        stHash_destruct(merged_blocks_per_contig);
+    }
 
     return variant_ref_blocks;
 
