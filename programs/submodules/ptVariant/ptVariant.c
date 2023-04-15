@@ -754,7 +754,7 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
     stList* intersected_variants = ptVariant_subset_stList(phased_variants, merged_blocks_per_contig);
     fprintf(stdout, "[%s] Number of intersected variants = %d\n", get_timestamp(), stList_length(intersected_variants));
 
-    stList *selected_variants = filter_ref_variants(subset_phased_variants);
+    stList *selected_variants = filter_ref_variants(intersected_variants);
     fprintf(stdout, "[%s] Number of selected (No REF) variants = %d\n", get_timestamp(), stList_length(selected_variants));
 
     stHash *variant_ref_blocks = extract_variant_ref_blocks(selected_variants, fai, min_margin);
