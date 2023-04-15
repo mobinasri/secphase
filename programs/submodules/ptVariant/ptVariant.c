@@ -761,7 +761,7 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
         fprintf(stdout, "[%s] Number of intersected variants = %d\n", get_timestamp(),
                 stList_length(intersected_variants));
     } else {
-        stList *intersected_variants = phased_variants;
+        intersected_variants = phased_variants;
     }
 
     stList *selected_variants = filter_ref_variants(intersected_variants);
