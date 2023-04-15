@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
                 min_var_margin = atoi(optarg);
                 break;
             case 'B':
-                variantBedPath = atoi(optarg);
+                variantBedPath = optarg;
                 break;
             case 'M':
                 marker_mode = false;
@@ -231,7 +231,7 @@ int main(int argc, char *argv[]) {
 
     faidx_t *fai = fai_load(fastaPath);
 
-    stHash *variant_ref_blocks_per_contig
+    stHash *variant_ref_blocks_per_contig;
     if (vcfPath != NULL) {
         variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
                                                                                     fai,
