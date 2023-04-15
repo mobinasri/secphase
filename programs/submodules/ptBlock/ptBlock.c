@@ -182,6 +182,16 @@ stHash *ptBlock_parse_bed(char *bed_path) {
     return blocks_per_contig;
 }
 
+void ptBlock_sort_stHash_by_rfs(stHash *blocks_per_contig) {
+    char *contig_name;
+    stList *blocks;
+    stHashIterator *it = stHash_getIterator(blocks_per_contig);
+    while ((contig_name = stHash_getNext(it)) != NULL) {
+        blocks = stHash_search(blocks_per_contig, contig_name);
+        stList_sort(blocks, ptBlock_cmp_rfs);
+    }
+}
+
 stList *ptBlock_merge_blocks(stList *blocks,
                              int (*get_start)(ptBlock *), int (*get_end)(ptBlock *),
                              void (*set_end)(ptBlock *, int)) {
@@ -238,33 +248,33 @@ stHash *ptBlock_merge_blocks_per_contig(stHash *blocks_per_contig,
     return merged_blocks_per_contig;
 }
 
-stHash *ptBlock_merge_blocks_per_contig_by_rf(stHash *blocks_per_contig){
+stHash *ptBlock_merge_blocks_per_contig_by_rf(stHash *blocks_per_contig) {
     return ptBlock_merge_blocks_per_contig(blocks_per_contig, ptBlock_get_rfs,
                                            ptBlock_get_rfe,
                                            ptBlock_set_rfe);
 }
 
-stHash *ptBlock_merge_blocks_per_contig_by_rd_f(stHash *blocks_per_contig){
+stHash *ptBlock_merge_blocks_per_contig_by_rd_f(stHash *blocks_per_contig) {
     return ptBlock_merge_blocks_per_contig(blocks_per_contig, ptBlock_get_rds_f,
                                            ptBlock_get_rde_f,
                                            ptBlock_set_rde_f);
 }
 
-stHash *ptBlock_merge_blocks_per_contig_by_sq(stHash *blocks_per_contig){
+stHash *ptBlock_merge_blocks_per_contig_by_sq(stHash *blocks_per_contig) {
     return ptBlock_merge_blocks_per_contig(blocks_per_contig, ptBlock_get_sqs,
                                            ptBlock_get_sqe,
                                            ptBlock_set_sqe);
 }
 
-int ptBlock_get_total_length(stHash *blocks_per_contig, int (*get_start)(ptBlock *), int (*get_end)(ptBlock *)){
+int ptBlock_get_total_length(stHash *blocks_per_contig, int (*get_start)(ptBlock *), int (*get_end)(ptBlock *)) {
     int total_len = 0;
     char *contig_name;
     stList *blocks;
-    ptBlock* block;
+    ptBlock *block;
     stHashIterator *it = stHash_getIterator(blocks_per_contig);
     while ((contig_name = stHash_getNext(it)) != NULL) {
         blocks = stHash_search(blocks_per_contig, contig_name);
-        for (int i=0; i < stList_length(blocks); i++){
+        for (int i = 0; i < stList_length(blocks); i++) {
             block = stList_get(blocks, i);
             total_len += get_end(block) - get_start(block);
         }
@@ -272,14 +282,52 @@ int ptBlock_get_total_length(stHash *blocks_per_contig, int (*get_start)(ptBlock
     return total_len;
 }
 
-int ptBlock_get_total_length_by_rf(stHash *blocks_per_contig){
+int ptBlock_get_total_length_by_rf(stHash *blocks_per_contig) {
     return ptBlock_get_total_length(blocks_per_contig, ptBlock_get_rfs, ptBlock_get_rfe);
 }
 
-int ptBlock_get_total_length_by_rd_f(stHash *blocks_per_contig){
+int ptBlock_get_total_length_by_rd_f(stHash *blocks_per_contig) {
     return ptBlock_get_total_length(blocks_per_contig, ptBlock_get_rds_f, ptBlock_get_rde_f);
 }
 
-int ptBlock_get_total_length_by_sq(stHash *blocks_per_contig){
+int ptBlock_get_total_length_by_sq(stHash *blocks_per_contig) {
     return ptBlock_get_total_length(blocks_per_contig, ptBlock_get_sqs, ptBlock_get_sqe);
+}
+
+
+void ptBlock_add_alignment(stHash *blocks_per_contig, ptAlignment *alignment) {
+    ptBlock *block = ptBlock_construct(alignment->rfs,
+                                       alignment->rfe,
+                                       -1, -1,
+                                       -1, -1);
+    stList *blocks = stHash_search(blocks_per_contig, alignment->contig);
+    if (blocks == NULL) {
+        blocks = stList_construct3(0, ptBlock_destruct);
+        stHash_insert(blocks_per_contig, alignment->contig, blocks);
+    }
+    stList_append(blocks, block);
+}
+
+void ptBlock_save_in_bed(stHash *blocks_per_contig, char* bed_path){
+    // get contigs as a list and sort them
+    stList * contigs = stHash_getKeys(blocks_per_contig);
+    stList_sort(contigs, (int (*)(const void *, const void *))strcmp);
+
+    // open bed to write
+    FILE *fp = fopen(bed_path, "w");
+    if (fp == NULL) {
+        fprintf(stderr, "[%s] Error: Failed to open file %s.\n", get_timestamp(), bed_path);
+    }
+    // iterate over sorted contig names
+    for(int i = 0; i < stList_length(contigs); i++){
+        char* contig = stList_get(contigs, i);
+        stList *blocks = stHash_search(blocks_per_contig, contig);
+        // iterate over blocks in this contig
+        for(int j = 0; j < stList_length(blocks); j++) {
+            ptBlock* block = stList_get(blocks, j);
+            fprintf(fp, "%s\t%d\t%d\n", contig, block->rfs, block->rfe + 1); // end should be 1-based in BED
+        }
+
+    }
+    fclose(fp);
 }

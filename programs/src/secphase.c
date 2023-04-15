@@ -230,11 +230,12 @@ int main(int argc, char *argv[]) {
 
 
     faidx_t *fai = fai_load(fastaPath);
-    stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath, fai, min_var_margin);
+    stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath, fai,
+                                                                                        min_var_margin);
 
     if (debug == true) {
-        char bed_path_ref_blocks[50];
-        snprintf(bed_path_ref_blocks, 50, "%s.variant_ref_blocks.bed", prefix);
+        char bed_path_ref_blocks[200];
+        snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
         ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     }
 
@@ -258,6 +259,8 @@ int main(int argc, char *argv[]) {
     memset(read_name_new, '\0', 100);
     int alignments_len = 0;
     ptAlignment *alignments[11];
+    stHash *modified_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                           (void (*)(void *)) stList_destruct);
     int bytes_read;
     int conf_blocks_length;
     while (true) {
@@ -290,11 +293,15 @@ int main(int argc, char *argv[]) {
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE,
                                                output_log_file);
+                        // add modified blocks
+                        int primary_idx = get_primary_index(alignments, alignments_len);
+                        ptBlock_add_alignment(modified_blocks_per_contig, alignments[primary_idx]);
+                        ptBlock_add_alignment(modified_blocks_per_contig, alignments[best_idx]);
                     }
                     stList_destruct(merged_variant_read_blocks);
                 }
                     // If there is no overlap with variant blocks go to the marker consistency mode
-                else if(marker_mode) {
+                else if (marker_mode) {
                     stList *markers = ptMarker_get_initial_markers(alignments, alignments_len, min_q);
                     remove_all_mismatch_markers(&markers, alignments_len);
                     sort_and_fill_markers(&markers, alignments, alignments_len);
@@ -348,6 +355,14 @@ int main(int argc, char *argv[]) {
         alignments[alignments_len] = ptAlignment_construct(b, sam_hdr);
         alignments_len += 1;
     }
+
+    char bed_path_modified_blocks[200];
+    snprintf(bed_path_modified_blocks, 200, "%s.modified_blocks.bed", prefix);
+    // sort and merge modified blocks and save them in a bed file
+    ptBlock_sort_stHash_by_rfs(modified_blocks_per_contig); // sort in place
+    stHash *merged_modified_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(modified_blocks_per_contig);
+    ptBlock_save_in_bed(merged_modified_blocks_per_contig, bed_path_modified_blocks);
+
     // free memory
     fai_destroy(fai);
     sam_hdr_destroy(sam_hdr);
@@ -355,6 +370,8 @@ int main(int argc, char *argv[]) {
     bam_destroy1(b);
     fclose(output_log_file);
     stHash_destruct(variant_ref_blocks_per_contig);
+    stHash_destruct(modified_blocks_per_contig);
+    stHash_destruct(merged_modified_blocks_per_contig);
 }
 
 //main();

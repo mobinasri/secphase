@@ -124,3 +124,15 @@ int get_best_record_index(ptAlignment **alignments, int alignments_len, double p
     else return max_idx;
 }
 
+int get_primary_index(ptAlignment **alignments, int alignments_len) {
+    assert(alignments_len > 0);
+    for (int i = 0; i < alignments_len; i++) {
+        if ((alignments[i]->record->core.flag & BAM_FSECONDARY) == 0) {
+            return i;
+        }
+    }
+    // if no primary exists return -1
+    return -1;
+}
+
+

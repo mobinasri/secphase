@@ -113,6 +113,9 @@ int ptBlock_cmp_rds_f(const void *a, const void *b);
 // Compare two blocks by sqs
 int ptBlock_cmp_sqs(const void *a, const void *b);
 
+
+void ptBlock_sort_stHash_by_rfs(stHash *blocks_per_contig);
+
 /**
  * Parse a bed file and save the tracks in a hash table
  * Each contig/chromosome is saved as a key
@@ -189,6 +192,9 @@ stHash *ptBlock_merge_blocks_per_contig_by_rd_f(stHash *blocks_per_contig);
 
 stHash *ptBlock_merge_blocks_per_contig_by_sq(stHash *blocks_per_contig);
 
+void ptBlock_add_alignment(stHash *blocks_per_contig, ptAlignment *alignment);
+
+void ptBlock_save_in_bed(stHash *blocks_per_contig, char* bed_path);
 
 #endif /* PT_BLOCK_H */
 

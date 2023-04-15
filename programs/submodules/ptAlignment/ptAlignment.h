@@ -94,4 +94,6 @@ int get_best_record_index(ptAlignment** alignments, int alignments_len, double p
 void print_contigs(ptAlignment** alignments, int alignments_len);
 
 
+int get_primary_index(ptAlignment **alignments, int alignments_len);
+
 #endif /* PT_ALIGNMENT_H */
