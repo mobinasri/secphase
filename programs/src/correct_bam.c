@@ -81,6 +81,7 @@ stHash *get_phased_read_table(char *phased_reads_path) {
         }
 
     }
+    fclose(fp);
     return phased_read_table;
 }
 
@@ -137,6 +138,7 @@ stHash *get_mapq_table(char *mapq_table_path) {
         }
         stList_append(locs, loc);
     }
+    fclose(fp);
     return mapq_table;
 }
 
@@ -155,6 +157,7 @@ stSet *get_read_set(char *exclude_path) {
         strcpy(read_name, line);
         stSet_insert(exclude_read_set, read_name);
     }
+    fclose(fp);
     return exclude_read_set;
 }
 
