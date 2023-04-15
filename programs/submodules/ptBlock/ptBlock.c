@@ -20,7 +20,7 @@ ptBlock *ptBlock_construct(int rfs, int rfe, int sqs, int sqe, int rds_f, int rd
 void ptBlock_set_data(ptBlock *block, void *data, void (*destruct_data)(void *), void *(*copy_data)(void *),
                       void (*extend_data)(void *, void *)) {
     if (block->data != NULL) {
-        block->free_data(block->data);
+        block->destruct_data(block->data);
     }
     block->data = data;
     block->destruct_data = destruct_data;
