@@ -230,10 +230,12 @@ int main(int argc, char *argv[]) {
 
 
     faidx_t *fai = fai_load(fastaPath);
+
+    stHash *variant_ref_blocks_per_contig
     if (vcfPath != NULL) {
-        stHash *variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
-                                                                                            fai,
-                                                                                            min_var_margin);
+        variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
+                                                                                    fai,
+                                                                                    min_var_margin);
         if (debug == true) {
             char bed_path_ref_blocks[200];
             snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
