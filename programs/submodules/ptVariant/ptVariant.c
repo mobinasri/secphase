@@ -566,7 +566,7 @@ stList *project_ref_blocks_to_read(ptAlignment *alignment, stList *ref_variant_b
                 // append new read block
                 if (read_block->rds_f <= read_block->rde_f) {
                     // make a copy of all the variants in the ref block
-                    stList *variants_copy = ptVariant_stList_copy((stList *) ref_block->data);
+                    stList *variants_copy = (stList *) ptVariant_copy_stList((stList *) ref_block->data);
                     // add all copied variants to the read block
                     ptBlock_set_data(read_block, (void *) variants_copy, ptVariant_destruct_stList,
                                      ptVariant_copy_stList,
