@@ -7,6 +7,7 @@
 #include "common.h"
 #include "sonLib.h"
 #include "stdlib.h"
+#include "ptAlignment.h"
 
 /*
  * @abstract Structure for saving a block

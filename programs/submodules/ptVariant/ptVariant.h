@@ -341,4 +341,6 @@ void *ptVariant_copy_stList(void *vars_);
 // defined for ptBlock->destruct_data
 void *ptVariant_destruct_stList(void *vars_);
 
+stList *ptVariant_subset_stList(stList *variants, stHash *blocks_per_contig);
+
 #endif /* PT_VARIANT_H */
