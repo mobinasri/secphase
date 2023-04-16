@@ -46,6 +46,7 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
         }
     }
     fprintf(output_log_file, "\n");
+    fflush(output_log_file);
 }
 
 static struct option long_options[] =
