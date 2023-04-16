@@ -278,10 +278,10 @@ stList *read_phased_variants(char *vcf_path, bool consistent_gt) {
         n_ref_ps_variants += gt1 == 0 ? 1 : 0;
     }
 
+    printf("%d\t%d\t%d\t%.2f", ps_pre, n_ref_ps_variants, n_ps_variants,
+           (double) n_ref_ps_variants / n_ps_variants);
     // check the last phase block
     if (n_ref_ps_variants < (0.5 * n_ps_variants) && consistent_gt) {
-        printf("%d\t%d\t%d\t%.2f", ps_pre, n_ref_ps_variants, n_ps_variants,
-               (double) n_ref_ps_variants / n_ps_variants);
         n_variants = stList_length(variants);
         //Swap genotypes
         ptVariant_swap_gt(variants, n_variants - n_ps_variants, n_variants - 1);
