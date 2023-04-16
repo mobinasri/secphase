@@ -243,7 +243,7 @@ stHash *ptBlock_merge_blocks_per_contig(stHash *blocks_per_contig,
         // get blocks
         blocks = stHash_search(blocks_per_contig, contig_name);
         // merge blocks
-        ptBlock_merge_blocks(blocks, get_start, get_end, set_end);
+        merged_blocks = ptBlock_merge_blocks(blocks, get_start, get_end, set_end);
         // add merged blocks to the new table
         stHash_insert(merged_blocks_per_contig, contig_name, merged_blocks);
     }
