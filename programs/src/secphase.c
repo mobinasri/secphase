@@ -370,8 +370,12 @@ int main(int argc, char *argv[]) {
     snprintf(bed_path_modified_blocks, 200, "%s.modified_blocks.bed", prefix);
     // sort and merge modified blocks and save them in a bed file
     ptBlock_sort_stHash_by_rfs(modified_blocks_per_contig); // sort in place
+    fprintf(stderr, "[%s] Modified blocks are sorted.\n", get_timestamp());
     stHash *merged_modified_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(modified_blocks_per_contig);
+    fprintf(stderr, "[%s] Modified blocks are merged.\n", get_timestamp());
+    fprintf(stderr, "[%s] Total length of merged modified blocks: %d.\n", get_timestamp(), ptBlock_get_total_length_by_rf(merged_modified_blocks_per_contig));
     ptBlock_save_in_bed(merged_modified_blocks_per_contig, bed_path_modified_blocks);
+    fprintf(stderr, "[%s] Modified blocks are saved in %s.\n", get_timestamp(), bed_path_modified_blocks);
 
     // free memory
     fai_destroy(fai);
