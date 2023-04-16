@@ -306,6 +306,7 @@ int main(int argc, char *argv[]) {
                                                output_log_file);
                         // add modified blocks
                         int primary_idx = get_primary_index(alignments, alignments_len);
+                        assert(primary_idx != -1);
                         ptBlock_add_alignment(modified_blocks_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_per_contig, alignments[best_idx]);
                     }
