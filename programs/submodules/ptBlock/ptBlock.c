@@ -268,6 +268,18 @@ stHash *ptBlock_merge_blocks_per_contig_by_sq(stHash *blocks_per_contig) {
                                            ptBlock_set_sqe);
 }
 
+int ptBlock_get_total_number(stHash *blocks_per_contig) {
+    int n = 0;
+    char *contig_name;
+    stList *blocks;
+    stHashIterator *it = stHash_getIterator(blocks_per_contig);
+    while ((contig_name = stHash_getNext(it)) != NULL) {
+        blocks = stHash_search(blocks_per_contig, contig_name);
+        n += stList_length(blocks);
+    }
+    return n;
+}
+
 int ptBlock_get_total_length(stHash *blocks_per_contig, int (*get_start)(ptBlock *), int (*get_end)(ptBlock *)) {
     int total_len = 0;
     char *contig_name;

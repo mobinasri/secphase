@@ -197,5 +197,7 @@ void ptBlock_add_alignment(stHash *blocks_per_contig, ptAlignment *alignment);
 
 void ptBlock_save_in_bed(stHash *blocks_per_contig, char* bed_path);
 
+int ptBlock_get_total_number(stHash *blocks_per_contig);
+
 #endif /* PT_BLOCK_H */
 
