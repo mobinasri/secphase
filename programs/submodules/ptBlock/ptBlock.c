@@ -159,8 +159,7 @@ stHash *ptBlock_parse_bed(char *bed_path) {
             line[strlen(line) - 1] = '\0';
         }
         token = strtok(line, "\t");
-        contig_name = malloc(strlen(token) + 1);
-        strcpy(contig_name, token);
+        contig_name = copyString(token);
         token = strtok(NULL, "\t");
         start = atoi(token); // 0-based
         token = strtok(NULL, "\t");
@@ -317,7 +316,8 @@ void ptBlock_add_alignment(stHash *blocks_per_contig, ptAlignment *alignment) {
     stList *blocks = stHash_search(blocks_per_contig, alignment->contig);
     if (blocks == NULL) {
         blocks = stList_construct3(0, ptBlock_destruct);
-        stHash_insert(blocks_per_contig, alignment->contig, blocks);
+        // contig name should be copied prior to inserting as a key
+        stHash_insert(blocks_per_contig, copyString(alignment->contig), blocks);
     }
     stList_append(blocks, block);
 }

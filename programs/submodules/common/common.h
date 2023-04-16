@@ -35,6 +35,8 @@ typedef struct Splitter{
 
 char* get_timestamp();
 
+char* copyString(char* str);
+
 Splitter* Splitter_construct(char* str, char delimiter);
 
 void Splitter_destruct(Splitter* splitter);

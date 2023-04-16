@@ -11,6 +11,11 @@ char* get_timestamp() {
     return timestamp;
 }
 
+char* copyString(char* str){
+    char* copy  = (char*) malloc(strlen(str) + 1);
+    strcpy(copy, str);
+    return copy;
+}
 
 int min(int a, int b){
 	return a < b ? a : b;
