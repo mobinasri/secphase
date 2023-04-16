@@ -773,6 +773,8 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
     stHash *variant_ref_blocks = extract_variant_ref_blocks(selected_variants, fai, min_margin);
     fprintf(stdout, "[%s] Variant blocks are created on the reference coordinates (min_margin = %d).\n",
             get_timestamp(), min_margin);
+    fprintf(stdout, "[%s] Total length of variant blocks: %d\n",
+            get_timestamp(), ptBlock_get_total_length_by_rf(variant_ref_blocks));
 
     // We can free these lists because variant_ref_blocks has all the necessary variants
     stList_destruct(phased_variants);
