@@ -367,7 +367,7 @@ int main(int argc, char *argv[]) {
     }
 
     fprintf(stderr, "[%s] Started processing modified blocks.\n", get_timestamp());
-    fprintf(stderr, "[%s] Total length of modified blocks: %d\n", ptBlock_get_total_length_by_rf(modified_blocks_per_contig));
+    fprintf(stderr, "[%s] Total length of modified blocks: %d\n", get_timestamp(), ptBlock_get_total_length_by_rf(modified_blocks_per_contig));
     char bed_path_modified_blocks[200];
     snprintf(bed_path_modified_blocks, 200, "%s.modified_blocks.bed", prefix);
     // sort and merge modified blocks and save them in a bed file
