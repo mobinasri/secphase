@@ -278,7 +278,7 @@ int ptBlock_get_total_length(stHash *blocks_per_contig, int (*get_start)(ptBlock
         blocks = stHash_search(blocks_per_contig, contig_name);
         for (int i = 0; i < stList_length(blocks); i++) {
             block = stList_get(blocks, i);
-            total_len += get_end(block) - get_start(block);
+            total_len += get_end(block) - get_start(block) + 1;
         }
     }
     return total_len;
