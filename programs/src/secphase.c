@@ -366,6 +366,7 @@ int main(int argc, char *argv[]) {
         alignments_len += 1;
     }
 
+    fprintf(stderr, "[%s] Started processing modified blocks.\n", get_timestamp());
     char bed_path_modified_blocks[200];
     snprintf(bed_path_modified_blocks, 200, "%s.modified_blocks.bed", prefix);
     // sort and merge modified blocks and save them in a bed file
