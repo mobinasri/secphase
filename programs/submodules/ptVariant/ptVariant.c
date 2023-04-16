@@ -613,7 +613,7 @@ stList *merge_variant_read_blocks(stList *blocks) {
 int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block) {
     char *read_seq = fetch_read_seq(alignment, block);
     char *corrected_ref_seq = fetch_corrected_ref_seq(fai, block, alignment->contig);
-    printf("read\t%s\nref\t%s\n", read_seq, corrected_ref_seq);
+    //printf("read\t%s\nref\t%s\n", read_seq, corrected_ref_seq);
     int edit_distance = 0;
     EdlibAlignResult result = edlibAlign(read_seq, strlen(read_seq), corrected_ref_seq, strlen(corrected_ref_seq),
                                          edlibDefaultAlignConfig());
@@ -622,7 +622,7 @@ int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block) {
         exit(EXIT_FAILURE);
     }
     edit_distance = result.editDistance;
-    printf("edit=%d\n\n", edit_distance);
+    //printf("edit=%d\n\n", edit_distance);
     edlibFreeAlignResult(result);
     free(corrected_ref_seq);
     free(read_seq);
