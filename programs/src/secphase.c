@@ -70,7 +70,6 @@ static struct option long_options[] =
                 {"ont",               no_argument,       NULL, 'y'},
                 {"minVariantMargin",  required_argument, NULL, 'g'},
                 {"prefix",            required_argument, NULL, 'P'},
-                {"debug",             no_argument,       NULL, 'D'},
                 {"variantBed",        no_argument,       NULL, 'B'},
                 {NULL,                0,                 NULL, 0}
         };
@@ -90,33 +89,32 @@ int main(int argc, char *argv[]) {
     double conf_d = 1e-4;
     double conf_e = 0.1;
     double conf_b = 20;
-    char *inputPath;
-    char *fastaPath;
-    char *variantBedPath = NULL;
-    char *vcfPath = NULL;
-    char prefix[50] = "secphase";
-    bool debug = false;
+    char inputPath[200];
+    char fastaPath[200];
+    char variantBedPath[200];
+    variantBedPath[0] = NULL;
+    char vcfPath[200];
+    vcfPath[0] = NULL;
+    char prefix[200];
+    strcpy(prefix, "secphase");
     char *program;
     bool preset_ont = false;
     bool preset_hifi = false;
     bool marker_mode = true;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-    while (~(c = getopt_long(argc, argv, "i:p:P:Df:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
+    while (~(c = getopt_long(argc, argv, "i:p:P:f:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
         switch (c) {
             case 'i':
-                inputPath = optarg;
+                strcpy(inputPath, optarg);
                 break;
             case 'f':
-                fastaPath = optarg;
+                strcpy(fastaPath, optarg);
                 break;
             case 'v':
-                vcfPath = optarg;
+                strcpy(vcfPath, optarg);
                 break;
             case 'P':
                 strcpy(prefix, optarg);
-                break;
-            case 'D':
-                debug = true;
                 break;
             case 'x':
                 preset_hifi = true;
@@ -183,7 +181,7 @@ int main(int argc, char *argv[]) {
                 min_var_margin = atoi(optarg);
                 break;
             case 'B':
-                variantBedPath = optarg;
+                strcpy(variantBedPath, optarg);
                 break;
             case 'M':
                 marker_mode = false;
@@ -233,21 +231,17 @@ int main(int argc, char *argv[]) {
     faidx_t *fai = fai_load(fastaPath);
 
     stHash *variant_ref_blocks_per_contig;
-    if (vcfPath != NULL) {
+    if (vcfPath != NULL && vcfPath[0] != NULL) {
         variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
                                                                                     fai,
                                                                                     min_var_margin);
-        if (debug == true) {
-            char bed_path_ref_blocks[200];
-            snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
-            ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
-        }
+        char bed_path_ref_blocks[200];
+        snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
+        ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     } else {
-
         // if no vcf is given just make an empty table
         variant_ref_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                           (void (*)(void *)) stList_destruct);
-
     }
 
     if (preset_ont && preset_hifi) {
@@ -369,8 +363,10 @@ int main(int argc, char *argv[]) {
     }
 
     fprintf(stderr, "[%s] Started processing modified blocks.\n", get_timestamp());
-    fprintf(stderr, "[%s] Total number of modified blocks: %d\n", get_timestamp(), ptBlock_get_total_number(modified_blocks_per_contig));
-    fprintf(stderr, "[%s] Total length of modified blocks: %d\n", get_timestamp(), ptBlock_get_total_length_by_rf(modified_blocks_per_contig));
+    fprintf(stderr, "[%s] Total number of modified blocks: %d\n", get_timestamp(),
+            ptBlock_get_total_number(modified_blocks_per_contig));
+    fprintf(stderr, "[%s] Total length of modified blocks: %d\n", get_timestamp(),
+            ptBlock_get_total_length_by_rf(modified_blocks_per_contig));
     char bed_path_modified_blocks[200];
     snprintf(bed_path_modified_blocks, 200, "%s.modified_blocks.bed", prefix);
     // sort and merge modified blocks and save them in a bed file
@@ -378,7 +374,8 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "[%s] Modified blocks are sorted.\n", get_timestamp());
     stHash *merged_modified_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(modified_blocks_per_contig);
     fprintf(stderr, "[%s] Modified blocks are merged.\n", get_timestamp());
-    fprintf(stderr, "[%s] Total length of merged modified blocks: %d.\n", get_timestamp(), ptBlock_get_total_length_by_rf(merged_modified_blocks_per_contig));
+    fprintf(stderr, "[%s] Total length of merged modified blocks: %d.\n", get_timestamp(),
+            ptBlock_get_total_length_by_rf(merged_modified_blocks_per_contig));
     ptBlock_save_in_bed(merged_modified_blocks_per_contig, bed_path_modified_blocks);
     fprintf(stderr, "[%s] Modified blocks are saved in %s.\n", get_timestamp(), bed_path_modified_blocks);
 

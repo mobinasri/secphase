@@ -748,7 +748,7 @@ stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_pa
     stHash *blocks_per_contig;
     stHash *merged_blocks_per_contig;
     stList *intersected_variants;
-    if (bed_path != NULL) {
+    if (bed_path != NULL && bed_path[0] != NULL) {
         blocks_per_contig = ptBlock_parse_bed(bed_path);
         fprintf(stdout, "[%s] Total length of parsed bed tracks = %d\n", get_timestamp(),
                 ptBlock_get_total_length_by_rf(blocks_per_contig));
