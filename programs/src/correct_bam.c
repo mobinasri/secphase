@@ -8,6 +8,7 @@
 #include "sonLib.h"
 #include "cigar_it.h"
 #include "thread_pool.h"
+#include "common.h"
 
 typedef struct {
     char contig_name[50];
@@ -49,8 +50,7 @@ stHash *get_phased_read_table(char *phased_reads_path) {
         if (line[0] == '$') {
             token = strtok(line, "\t");
             token = strtok(NULL, "\t");
-            read_name = malloc(strlen(token) + 1);
-            strcpy(read_name, token);
+            read_name = copyString(token);
             start_new = -1;
             start_old = -1;
         } else if (line[0] == '@') {
@@ -125,11 +125,9 @@ stHash *get_mapq_table(char *mapq_table_path) {
         }
         line[strlen(line) - 1] = '\0';
         token = strtok(line, "\t");
-        read_name = malloc(strlen(token) + 1);
-        strcpy(read_name, token);
+        read_name = copyString(token);
         token = strtok(NULL, "\t");
-        contig_name = malloc(strlen(token) + 1);
-        strcpy(contig_name, token);
+        contig_name = copyString(token);
         token = strtok(NULL, "\t");
         start = atoi(token) - 1; // 0-based
         token = strtok(NULL, "\t");
