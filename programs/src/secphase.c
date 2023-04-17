@@ -52,6 +52,21 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
     fflush(output_log_file);
 }
 
+void merge_and_save_modified_blocks(stHash* blocks_per_contig, char* modified_by, char* bed_path){
+
+    // sort and merge modified blocks
+    ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
+    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+    fprintf(stderr, "[%s] Total length of blocks modified by %s: %d.\n", get_timestamp(), modified_by,
+            ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
+    fprintf(stderr, "[%s] Total number of blocks modified by %s: %d.\n", get_timestamp(), modified_by,
+            ptBlock_get_total_number(merged_blocks_per_contig));
+
+    ptBlock_save_in_bed(merged_blocks_per_contig, bed_path);
+    fprintf(stderr, "[%s] Blocks modified by %s are saved in %s.\n", get_timestamp(), modified_by, bed_path);
+    stHash_destruct(merged_blocks_per_contig);
+}
+
 static struct option long_options[] =
         {
                 {"inputBam",          required_argument, NULL, 'i'},
@@ -73,7 +88,7 @@ static struct option long_options[] =
                 {"ont",               no_argument,       NULL, 'y'},
                 {"minVariantMargin",  required_argument, NULL, 'g'},
                 {"prefix",            required_argument, NULL, 'P'},
-                {"outDir",               required_argument, NULL, 'o'},
+                {"outDir",            required_argument, NULL, 'o'},
                 {"variantBed",        no_argument,       NULL, 'B'},
                 {NULL,                0,                 NULL, 0}
         };
@@ -288,10 +303,15 @@ int main(int argc, char *argv[]) {
     memset(read_name_new, '\0', 100);
     int alignments_len = 0;
     ptAlignment *alignments[11];
-    stHash *modified_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
-                                                           (void (*)(void *)) stList_destruct);
+    stHash *modified_blocks_by_vars_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                                   (void (*)(void *)) stList_destruct);
+
+    stHash *modified_blocks_by_marker_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                                     (void (*)(void *)) stList_destruct);
     int bytes_read;
     int conf_blocks_length;
+    int reads_modified_by_vars = 0;
+    int reads_modified_by_marker = 0;
     while (true) {
         bytes_read = sam_read1(fp, sam_hdr, b);
         if (bytes_read > -1) {
@@ -325,8 +345,9 @@ int main(int argc, char *argv[]) {
                         // add modified blocks
                         int primary_idx = get_primary_index(alignments, alignments_len);
                         assert(primary_idx != -1);
-                        ptBlock_add_alignment(modified_blocks_per_contig, alignments[primary_idx]);
-                        ptBlock_add_alignment(modified_blocks_per_contig, alignments[best_idx]);
+                        ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx]);
+                        ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx]);
+                        reads_modified_by_vars += 1;
                     }
                     stList_destruct(merged_variant_read_blocks);
                 }
@@ -365,6 +386,12 @@ int main(int argc, char *argv[]) {
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER,
                                                output_log_file);
+                        // add modified blocks
+                        int primary_idx = get_primary_index(alignments, alignments_len);
+                        assert(primary_idx != -1);
+                        ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx]);
+                        ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
+                        reads_modified_by_marker += 1;
                     }
                     stList_destruct(markers);
                 }
@@ -386,24 +413,22 @@ int main(int argc, char *argv[]) {
         alignments_len += 1;
     }
 
-    fprintf(stderr, "[%s] Started processing modified blocks.\n", get_timestamp());
-    fprintf(stderr, "[%s] Total number of modified blocks: %d\n", get_timestamp(),
-            ptBlock_get_total_number(modified_blocks_per_contig));
-    fprintf(stderr, "[%s] Total length of modified blocks: %d\n", get_timestamp(),
-            ptBlock_get_total_length_by_rf(modified_blocks_per_contig));
-    // sort and merge modified blocks and save them in a bed file
-    ptBlock_sort_stHash_by_rfs(modified_blocks_per_contig); // sort in place
-    fprintf(stderr, "[%s] Modified blocks are sorted.\n", get_timestamp());
-    stHash *merged_modified_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(modified_blocks_per_contig);
-    fprintf(stderr, "[%s] Modified blocks are merged.\n", get_timestamp());
-    fprintf(stderr, "[%s] Total length of merged modified blocks: %d.\n", get_timestamp(),
-            ptBlock_get_total_length_by_rf(merged_modified_blocks_per_contig));
 
-    // save bed file
+    fprintf(stderr, "[%s] Number of reads modified by phased variants = %d\n", get_timestamp(),
+            reads_modified_by_vars);
+    fprintf(stderr, "[%s] Number of reads modified by marker score = %d\n", get_timestamp(),
+            reads_modified_by_marker);
+
+
+    // merge blocks and save in a bed file
     char bed_path_modified_blocks[200];
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.bed", dirPath, prefix);
-    ptBlock_save_in_bed(merged_modified_blocks_per_contig, bed_path_modified_blocks);
-    fprintf(stderr, "[%s] Modified blocks are saved in %s.\n", get_timestamp(), bed_path_modified_blocks);
+
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.variants.bed", dirPath, prefix);
+    merge_and_save_modified_blocks(modified_blocks_by_vars_per_contig, "phased variants", bed_path_modified_blocks);
+
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.markers.bed", dirPath, prefix);
+    merge_and_save_modified_blocks(modified_blocks_by_marker_per_contig, "markers", bed_path_modified_blocks);
+
 
     // free memory
     fai_destroy(fai);
@@ -412,8 +437,7 @@ int main(int argc, char *argv[]) {
     bam_destroy1(b);
     fclose(output_log_file);
     stHash_destruct(variant_ref_blocks_per_contig);
-    stHash_destruct(modified_blocks_per_contig);
-    stHash_destruct(merged_modified_blocks_per_contig);
+    stHash_destruct(modified_blocks_by_marker_per_contig);
+    stHash_destruct(modified_blocks_by_vars_per_contig);
 }
-
 //main();
