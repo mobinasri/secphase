@@ -295,8 +295,10 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "         --inputBam,\t-i         input bam file\n");
                 fprintf(stderr, "         --outputBam,\t-o         output bam file\n");
                 fprintf(stderr, "         --maxMapq,\t-x         maximum mapq [default:100]\n");
-                fprintf(stderr, "         --phasingLog,\t-P         the phasing log path (output of secphase) [optional]\n");
-                fprintf(stderr, "         --mapqTable,\t-M         the adjusted mapq table (tab-delimited) path (4 columns with no header: read_name, contig_name, 1_based_contig_start , new_mapq) [optional]\n");
+                fprintf(stderr,
+                        "         --phasingLog,\t-P         the phasing log path (output of secphase) [optional]\n");
+                fprintf(stderr,
+                        "         --mapqTable,\t-M         the adjusted mapq table (tab-delimited) path (4 columns with no header: read_name, contig_name, 1_based_contig_start , new_mapq) [optional]\n");
                 fprintf(stderr,
                         "         --exclude,\t-e         Path to a file containing the read names that have to be excluded [optional]\n");
                 fprintf(stderr, "         --noTag,\t-t         output no optional fields\n");
