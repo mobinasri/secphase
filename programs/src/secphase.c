@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
 
     // make directory for saving output files
     if (stat(dirPath, &st) == -1) {
-        mkdir(dirPath, 0700);
+        mkdir(dirPath, 0777);
     }
 
     faidx_t *fai = fai_load(fastaPath);
