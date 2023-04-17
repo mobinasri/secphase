@@ -123,7 +123,6 @@ stHash *get_mapq_table(char *mapq_table_path) {
         if (line[strlen(line) - 1] == '\n') {
             line[strlen(line) - 1] = '\0';
         }
-        line[strlen(line) - 1] = '\0';
         token = strtok(line, "\t");
         read_name = copyString(token);
         token = strtok(NULL, "\t");
