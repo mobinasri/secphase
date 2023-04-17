@@ -72,7 +72,7 @@ static struct option long_options[] =
                 {"inputBam",          required_argument, NULL, 'i'},
                 {"inputFasta",        required_argument, NULL, 'f'},
                 {"inputVcf",          required_argument, NULL, 'v'},
-                {"disableMarkerMode", required_argument, NULL, 'M'},
+                {"disableMarkerMode", no_argument, NULL, 'M'},
                 {"baq",               no_argument,       NULL, 'q'},
                 {"gapOpen",           required_argument, NULL, 'd'},
                 {"gapExt",            required_argument, NULL, 'e'},
@@ -89,7 +89,7 @@ static struct option long_options[] =
                 {"minVariantMargin",  required_argument, NULL, 'g'},
                 {"prefix",            required_argument, NULL, 'P'},
                 {"outDir",            required_argument, NULL, 'o'},
-                {"variantBed",        no_argument,       NULL, 'B'},
+                {"variantBed",        required_argument,       NULL, 'B'},
                 {NULL,                0,                 NULL, 0}
         };
 
