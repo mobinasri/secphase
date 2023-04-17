@@ -18,6 +18,9 @@
 #include "ptVariant.h"
 #include "ptAlignment.h"
 #include "ptMarker.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define SCORE_TYPE_MARKER           0
 #define SCORE_TYPE_EDIT_DISTANCE    1
@@ -70,6 +73,7 @@ static struct option long_options[] =
                 {"ont",               no_argument,       NULL, 'y'},
                 {"minVariantMargin",  required_argument, NULL, 'g'},
                 {"prefix",            required_argument, NULL, 'P'},
+                {"outDir",               required_argument, NULL, 'o'},
                 {"variantBed",        no_argument,       NULL, 'B'},
                 {NULL,                0,                 NULL, 0}
         };
@@ -97,12 +101,14 @@ int main(int argc, char *argv[]) {
     vcfPath[0] = NULL;
     char prefix[200];
     strcpy(prefix, "secphase");
+    char dirPath[200];
+    strcpy(dirPath, "secphase_out_dir");
     char *program;
     bool preset_ont = false;
     bool preset_hifi = false;
     bool marker_mode = true;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-    while (~(c = getopt_long(argc, argv, "i:p:P:f:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
+    while (~(c = getopt_long(argc, argv, "i:p:P:o:f:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
         switch (c) {
             case 'i':
                 strcpy(inputPath, optarg);
@@ -115,6 +121,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'P':
                 strcpy(prefix, optarg);
+                break;
+            case 'o':
+                strcpy(dir, optarg);
                 break;
             case 'x':
                 preset_hifi = true;
@@ -197,6 +206,10 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr,
                         "         --variantBed, -B         Input BED file for subsetting phased variants\n");
                 fprintf(stderr,
+                        "         --outDir, -o         Output dir for saving outputs [Default = \"secphase_out_dir\"]\n");
+                fprintf(stderr,
+                        "         --prefix, -P         Prefix of the output files [Default = \"secphase\"]\n");
+                fprintf(stderr,
                         "         --disableMarkerMode, -M         If alignments do not overlap with variants Secphase will not switch to marker mode\n");
                 fprintf(stderr,
                         "         --hifi, -x         hifi preset params (only for marker mode) [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)\n");
@@ -228,6 +241,17 @@ int main(int argc, char *argv[]) {
     }
 
 
+    // make sure the given out directory does not end with '/'
+    if (dirPath[strlen(dirPath) - 1] == '/') {
+        dirPath[strlen(dirPath) - 1] == '\0';
+    }
+    struct stat st = {0};
+
+    // make directory for saving output files
+    if (stat(dirPath, &st) == -1) {
+        mkdir(dirPath, 0700);
+    }
+
     faidx_t *fai = fai_load(fastaPath);
 
     stHash *variant_ref_blocks_per_contig;
@@ -236,7 +260,7 @@ int main(int argc, char *argv[]) {
                                                                                     fai,
                                                                                     min_var_margin);
         char bed_path_ref_blocks[200];
-        snprintf(bed_path_ref_blocks, 200, "%s.variant_ref_blocks.bed", prefix);
+        snprintf(bed_path_ref_blocks, 200, "%s/%s.variant_ref_blocks.bed", dirPath, prefix);
         ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     } else {
         // if no vcf is given just make an empty table
@@ -252,7 +276,7 @@ int main(int argc, char *argv[]) {
 
     // open file for saving reads that have to be corrected
     char output_log_path[200];
-    snprintf(output_log_path, 200, "%s.out.log", prefix);
+    snprintf(output_log_path, 200, "%s/%s.out.log", dirPath, prefix);
     FILE *output_log_file = fopen(output_log_path, "w+");
     // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
@@ -367,8 +391,6 @@ int main(int argc, char *argv[]) {
             ptBlock_get_total_number(modified_blocks_per_contig));
     fprintf(stderr, "[%s] Total length of modified blocks: %d\n", get_timestamp(),
             ptBlock_get_total_length_by_rf(modified_blocks_per_contig));
-    char bed_path_modified_blocks[200];
-    snprintf(bed_path_modified_blocks, 200, "%s.modified_blocks.bed", prefix);
     // sort and merge modified blocks and save them in a bed file
     ptBlock_sort_stHash_by_rfs(modified_blocks_per_contig); // sort in place
     fprintf(stderr, "[%s] Modified blocks are sorted.\n", get_timestamp());
@@ -376,6 +398,10 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "[%s] Modified blocks are merged.\n", get_timestamp());
     fprintf(stderr, "[%s] Total length of merged modified blocks: %d.\n", get_timestamp(),
             ptBlock_get_total_length_by_rf(merged_modified_blocks_per_contig));
+
+    // save bed file
+    char bed_path_modified_blocks[200];
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.bed", dirPath, prefix);
     ptBlock_save_in_bed(merged_modified_blocks_per_contig, bed_path_modified_blocks);
     fprintf(stderr, "[%s] Modified blocks are saved in %s.\n", get_timestamp(), bed_path_modified_blocks);
 
