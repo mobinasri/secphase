@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
     int min_alignment_length = 5000;
     double max_divergence = 0.12;
     int nthreads = 2;
-    int max_mapq = 60;
+    int max_mapq = 100;
     char *program;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
     while (~(c = getopt_long(argc, argv, "i:o:x:e:P:M:tpm:a:n:d:h", long_options, NULL))) {
@@ -295,9 +295,9 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Options:\n");
                 fprintf(stderr, "         --inputBam,\t-i         input bam file\n");
                 fprintf(stderr, "         --outputBam,\t-o         output bam file\n");
-                fprintf(stderr, "         --maxMapq,\t-x         maximum mapq [default:60]\n");
-                fprintf(stderr, "         --phasingLog,\t-P         the phasing log path [optional]\n");
-                fprintf(stderr, "         --mapqTable,\t-M         the adjusted mapq table path [optional]\n");
+                fprintf(stderr, "         --maxMapq,\t-x         maximum mapq [default:100]\n");
+                fprintf(stderr, "         --phasingLog,\t-P         the phasing log path (output of secphase) [optional]\n");
+                fprintf(stderr, "         --mapqTable,\t-M         the adjusted mapq table (tab-delimited) path (4 columns with no header: read_name, contig_name, 1_based_contig_start , new_mapq) [optional]\n");
                 fprintf(stderr,
                         "         --exclude,\t-e         Path to a file containing the read names that have to be excluded [optional]\n");
                 fprintf(stderr, "         --noTag,\t-t         output no optional fields\n");
