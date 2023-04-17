@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
                 strcpy(prefix, optarg);
                 break;
             case 'o':
-                strcpy(dir, optarg);
+                strcpy(dirPath, optarg);
                 break;
             case 'x':
                 preset_hifi = true;
