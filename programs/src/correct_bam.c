@@ -43,7 +43,9 @@ stHash *get_phased_read_table(char *phased_reads_path) {
     char *token;
     Location *loc;
     while ((read = getline(&line, &len, fp)) != -1) {
-        line[strlen(line) - 1] = '\0';
+        if (line[strlen(line) - 1] == '\n') {
+            line[strlen(line) - 1] = '\0';
+        }
         if (line[0] == '$') {
             token = strtok(line, "\t");
             token = strtok(NULL, "\t");
@@ -118,6 +120,9 @@ stHash *get_mapq_table(char *mapq_table_path) {
     Location *loc;
     stList *locs;
     while ((read = getline(&line, &len, fp)) != -1) {
+        if (line[strlen(line) - 1] == '\n') {
+            line[strlen(line) - 1] = '\0';
+        }
         line[strlen(line) - 1] = '\0';
         token = strtok(line, "\t");
         read_name = malloc(strlen(token) + 1);
