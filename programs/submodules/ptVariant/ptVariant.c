@@ -862,7 +862,7 @@ stList *ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks_per_
     free(read_blocks_per_alignment);
 
     //free all_read_blocks
-    free(all_read_blocks);
+    stList_destruct(all_read_blocks);
 
 
     return read_blocks_merged;
