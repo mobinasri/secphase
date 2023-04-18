@@ -52,7 +52,7 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
     fflush(output_log_file);
 }
 
-void merge_and_save_modified_blocks(stHash* blocks_per_contig, char* modified_by, char* bed_path){
+void merge_and_save_modified_blocks(stHash *blocks_per_contig, char *modified_by, char *bed_path) {
 
     // sort and merge modified blocks
     ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
@@ -72,7 +72,7 @@ static struct option long_options[] =
                 {"inputBam",          required_argument, NULL, 'i'},
                 {"inputFasta",        required_argument, NULL, 'f'},
                 {"inputVcf",          required_argument, NULL, 'v'},
-                {"disableMarkerMode", no_argument, NULL, 'M'},
+                {"disableMarkerMode", no_argument,       NULL, 'M'},
                 {"baq",               no_argument,       NULL, 'q'},
                 {"gapOpen",           required_argument, NULL, 'd'},
                 {"gapExt",            required_argument, NULL, 'e'},
@@ -89,7 +89,7 @@ static struct option long_options[] =
                 {"minVariantMargin",  required_argument, NULL, 'g'},
                 {"prefix",            required_argument, NULL, 'P'},
                 {"outDir",            required_argument, NULL, 'o'},
-                {"variantBed",        required_argument,       NULL, 'B'},
+                {"variantBed",        required_argument, NULL, 'B'},
                 {NULL,                0,                 NULL, 0}
         };
 
@@ -331,9 +331,12 @@ int main(int argc, char *argv[]) {
                 // Check if there is any variant block encompassed by any alignment
                 // If that is met then select the best alignment based on their edit distances
                 // to the variant blocks
+                stList *merged_variant_read_blocks = NULL;
                 if (overlap_variant_ref_blocks(variant_ref_blocks_per_contig, alignments, alignments_len)) {
-                    stList *merged_variant_read_blocks = ptVariant_get_merged_variant_read_blocks(
-                            variant_ref_blocks_per_contig, alignments, alignments_len);
+                    merged_variant_read_blocks = ptVariant_get_merged_variant_read_blocks(variant_ref_blocks_per_contig,
+                                                                                          alignments, alignments_len);
+                }
+                if (merged_variant_read_blocks != NULL && stList_length(merged_variant_read_blocks) > 0) {
                     set_scores_as_edit_distances(merged_variant_read_blocks, alignments, alignments_len, fai);
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
