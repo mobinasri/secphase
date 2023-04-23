@@ -306,6 +306,9 @@ int main(int argc, char *argv[]) {
     stHash *modified_blocks_by_vars_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                                    (void (*)(void *)) stList_destruct);
 
+    stHash *modified_blocks_by_marker_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                                     (void (*)(void *)) stList_destruct);
+
     stHash *variant_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                                    (void (*)(void *)) stList_destruct);
     int bytes_read;
@@ -438,13 +441,16 @@ int main(int argc, char *argv[]) {
     char bed_path_modified_blocks[200];
 
     snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.variants.bed", dirPath, prefix);
-    merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants", bed_path_modified_blocks);
+    merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants",
+                          bed_path_modified_blocks);
 
     snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.markers.bed", dirPath, prefix);
-    merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers", bed_path_modified_blocks);
+    merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
+                          bed_path_modified_blocks);
 
     snprintf(bed_path_modified_blocks, 200, "%s/%s.var_blocks.all_haps.bed", dirPath, prefix);
-    merge_and_save_blocks(variant_blocks_all_haps_per_contig, "projected variant blocks on all haplotypes", bed_path_modified_blocks);
+    merge_and_save_blocks(variant_blocks_all_haps_per_contig, "projected variant blocks on all haplotypes",
+                          bed_path_modified_blocks);
 
 
     // free memory
