@@ -31,12 +31,12 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
         // change primary to secondary
         if ((alignments[i]->record->core.flag & BAM_FSECONDARY) == 0) {
             fprintf(output_log_file, "*\t");
-            alignments[i]->record->core.flag |= BAM_FSECONDARY;
+            //alignments[i]->record->core.flag |= BAM_FSECONDARY;
         }
             //change secondary to primary for the best alignment
         else if (i == best_idx) {
             fprintf(output_log_file, "@\t");
-            alignments[i]->record->core.flag &= ~BAM_FSECONDARY;
+            //alignments[i]->record->core.flag &= ~BAM_FSECONDARY;
         } else fprintf(output_log_file, "!\t");
         if (score_type == SCORE_TYPE_EDIT_DISTANCE) {
             int edit_distance = -1 * alignments[i]->score;
