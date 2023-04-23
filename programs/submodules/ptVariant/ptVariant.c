@@ -872,14 +872,13 @@ stList *ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks_per_
 
 stList **
 set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t *fai) {
-    stList **projected_blocks_per_alignment_idx = (stList **) malloc(alignments_len * size(stList * ));
+    stList **projected_blocks_per_alignment_idx = (stList **) malloc(alignments_len * sizeof(stList * ));
     // get edit distances of the variant blocks for each alignment
     for (int i = 0; i < alignments_len; i++) {
         projected_blocks_per_alignment_idx[i] = stList_construct3(0, ptBlock_destruct);
         alignments[i]->score =
                 -1 *
-                get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged, projected_blocks,
-                                        projected_blocks_per_alignment_idx[i]);
+                get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged, projected_blocks_per_alignment_idx[i]);
     }
     return projected_blocks_per_alignment_idx;
 }
