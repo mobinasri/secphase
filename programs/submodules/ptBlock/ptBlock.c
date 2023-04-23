@@ -345,3 +345,15 @@ void ptBlock_save_in_bed(stHash *blocks_per_contig, char* bed_path){
     }
     fclose(fp);
 }
+
+void ptBlock_add_blocks_by_contig(stHash *blocks_per_contig, char* contig, stList *blocks_to_add) {
+    stList *blocks = stHash_search(blocks_per_contig, contig);
+    if (blocks == NULL) {
+        blocks = stList_construct3(0, ptBlock_destruct);
+        // contig name should be copied prior to inserting as a key
+        stHash_insert(blocks_per_contig, copyString(contig), blocks);
+    }
+    for (int i =0; i < stList_length(blocks_to_add); i++){
+        stList_append(blocks, ptBlock_copy(stList_get(blocks_to_add,i)));
+    }
+}

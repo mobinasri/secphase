@@ -52,18 +52,18 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
     fflush(output_log_file);
 }
 
-void merge_and_save_modified_blocks(stHash *blocks_per_contig, char *modified_by, char *bed_path) {
+void merge_and_save_blocks(stHash *blocks_per_contig, char *info_str, char *bed_path) {
 
     // sort and merge modified blocks
     ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
     stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
-    fprintf(stderr, "[%s] Total length of blocks modified by %s: %d.\n", get_timestamp(), modified_by,
+    fprintf(stderr, "[%s] Total length of %s: %d.\n", get_timestamp(), info_str,
             ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
-    fprintf(stderr, "[%s] Total number of blocks modified by %s: %d.\n", get_timestamp(), modified_by,
+    fprintf(stderr, "[%s] Total number of %s: %d.\n", get_timestamp(), info_str,
             ptBlock_get_total_number(merged_blocks_per_contig));
 
     ptBlock_save_in_bed(merged_blocks_per_contig, bed_path);
-    fprintf(stderr, "[%s] Blocks modified by %s are saved in %s.\n", get_timestamp(), modified_by, bed_path);
+    fprintf(stderr, "[%s] %s are saved in %s.\n", get_timestamp(), info_str, bed_path);
     stHash_destruct(merged_blocks_per_contig);
 }
 
@@ -306,8 +306,8 @@ int main(int argc, char *argv[]) {
     stHash *modified_blocks_by_vars_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                                    (void (*)(void *)) stList_destruct);
 
-    stHash *modified_blocks_by_marker_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
-                                                                     (void (*)(void *)) stList_destruct);
+    stHash *variant_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                                   (void (*)(void *)) stList_destruct);
     int bytes_read;
     int conf_blocks_length;
     int reads_modified_by_vars = 0;
@@ -337,7 +337,8 @@ int main(int argc, char *argv[]) {
                                                                                           alignments, alignments_len);
                 }
                 if (merged_variant_read_blocks != NULL && stList_length(merged_variant_read_blocks) > 0) {
-                    set_scores_as_edit_distances(merged_variant_read_blocks, alignments, alignments_len, fai);
+                    stList **variant_blocks_all_haps = set_scores_as_edit_distances(merged_variant_read_blocks,
+                                                                                    alignments, alignments_len, fai);
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
                     bam1_t *best = 0 <= best_idx ? alignments[best_idx]->record : NULL;
                     if (best && (best->core.flag & BAM_FSECONDARY)) {
@@ -350,9 +351,19 @@ int main(int argc, char *argv[]) {
                         assert(primary_idx != -1);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx]);
+                        ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
+                                                     alignments[primary_idx]->contig,
+                                                     variant_blocks_all_haps[primary_idx]);
+                        ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
+                                                     alignments[best_idx]->contig,
+                                                     variant_blocks_all_haps[best_idx]);
                         reads_modified_by_vars += 1;
                     }
                     stList_destruct(merged_variant_read_blocks);
+                    for (int i = 0; i < alignments_len; i++) {
+                        stList_destruct(variant_blocks_all_haps[i]);
+                    }
+                    free(variant_blocks_all_haps);
                 }
                     // If there is no overlap with variant blocks go to the marker consistency mode
                 else if (marker_mode) {
@@ -427,10 +438,13 @@ int main(int argc, char *argv[]) {
     char bed_path_modified_blocks[200];
 
     snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.variants.bed", dirPath, prefix);
-    merge_and_save_modified_blocks(modified_blocks_by_vars_per_contig, "phased variants", bed_path_modified_blocks);
+    merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants", bed_path_modified_blocks);
 
     snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.markers.bed", dirPath, prefix);
-    merge_and_save_modified_blocks(modified_blocks_by_marker_per_contig, "markers", bed_path_modified_blocks);
+    merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers", bed_path_modified_blocks);
+
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.var_blocks.all_haps.bed", dirPath, prefix);
+    merge_and_save_blocks(variant_blocks_all_haps_per_contig, "projected variant blocks on all haplotypes", bed_path_modified_blocks);
 
 
     // free memory

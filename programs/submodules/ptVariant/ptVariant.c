@@ -631,7 +631,7 @@ int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block) {
 
 
 int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
-                            stList *variant_read_blocks) {
+                            stList *variant_read_blocks, stList *projected_blocks) {
     bam1_t *b = alignment->record;
     int j = bam_is_rev(b) ? stList_length(variant_read_blocks) - 1 : 0;
     int edit_distance = 0;
@@ -686,6 +686,7 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
                                                    sqe,
                                                    read_block->rds_f,
                                                    read_block->rde_f);
+                stList_append(projected_blocks, block);
 
                 //printf("%d\t%d\n", rfs, rfe);
                 // all_variants contains all variants from all regions in the genome
@@ -869,14 +870,18 @@ stList *ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks_per_
 }
 
 
-void
+stList **
 set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t *fai) {
+    stList **projected_blocks_per_alignment_idx = (stList **) malloc(alignments_len * size(stList * ));
     // get edit distances of the variant blocks for each alignment
     for (int i = 0; i < alignments_len; i++) {
+        projected_blocks_per_alignment_idx[i] = stList_construct3(0, ptBlock_destruct);
         alignments[i]->score =
-                -1 * get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged);
+                -1 *
+                get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged, projected_blocks,
+                                        projected_blocks_per_alignment_idx[i]);
     }
-
+    return projected_blocks_per_alignment_idx;
 }
 
 

@@ -260,7 +260,7 @@ int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block);
  * @return edit_distance	Summation of edit distances between read and reference for all blocks
  */
 int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *contig_name,
-                            stList *variant_read_blocks);
+                            stList *variant_read_blocks, stList *projected_blocks);
 
 
 // This function performs three main tasks:
@@ -275,7 +275,7 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
  * @param min_margin		Minimum size of the block surrounding each variant
  *
  */
-stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char* bed_path, faidx_t *fai, int min_margin);
+stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin);
 
 
 //
@@ -316,9 +316,10 @@ ptVariant_get_merged_variant_read_blocks(stHash *variant_ref_blocks, ptAlignment
  * @param alignments            An array of alignments each of which saved as ptAlignment struct
  * @param alignments_len        Length of alignments array
  * @param sam_hdr		SAM header
+ * @return Array of stList. Each element is a list of proejected blocks for each alignment containing the start and end coordinates on both ref and read
  *
  */
-void
+stList **
 set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignments, int alignments_len, faidx_t *fai);
 
 /**
@@ -333,7 +334,7 @@ set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignment
 bool overlap_variant_ref_blocks(stHash *variant_ref_blocks_per_contig, ptAlignment **alignments, int alignments_len);
 
 // defined for ptBlock->extend_data
-void ptVariant_extend_stList(void *curr_vars_, void* new_vars_);
+void ptVariant_extend_stList(void *curr_vars_, void *new_vars_);
 
 // defined for ptBlock->copy_data
 void *ptVariant_copy_stList(void *vars_);
