@@ -83,7 +83,7 @@ void ptAlignment_destruct(ptAlignment *alignment) {
     free(alignment);
 }
 
-bool ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_len) {
+int ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_len) {
     int supp_count = 0;
     for (int i = 0; i < alignments_len; i++) {
         if (alignments[i]->record->core.flag & BAM_FSUPPLEMENTARY) supp_count += 1;
@@ -91,7 +91,7 @@ bool ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_le
     return supp_count;
 }
 
-bool ptAlignment_primary_count(ptAlignment **alignments, int alignments_len) {
+int ptAlignment_primary_count(ptAlignment **alignments, int alignments_len) {
     int primary_count = 0;
     for (int i = 0; i < alignments_len; i++) {
         if (alignments[i]->record->core.flag & BAM_FSECONDARY == 0) primary_count += 1;

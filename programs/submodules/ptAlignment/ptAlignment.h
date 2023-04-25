@@ -67,12 +67,12 @@ void ptAlignment_destruct(ptAlignment* alignment);
 /**
  * Get the number of supplementary alignments
  */
-bool ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_len);
+int ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_len);
 
 /**
  * Get the number of primary alignments
  */
-bool ptAlignment_primary_count(ptAlignment **alignments, int alignments_len);
+int ptAlignment_primary_count(ptAlignment **alignments, int alignments_len);
 
 
 /**
