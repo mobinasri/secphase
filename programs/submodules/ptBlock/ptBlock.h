@@ -10,7 +10,32 @@
 #include "ptAlignment.h"
 #include "ptMarker.h"
 
-typedef struct ptBlock_ ptBlock;
+/*
+ * @abstract Structure for saving a block
+ * @field rfs           Start coordinate on reference (0-based inclusive)
+ * @field rfe           End coordinate on reference (0-based inclusive)
+ * @field sqs           Start coordinate on sequence (0-based inclusive)
+ * @field sqe           End coordinate on sequence (0-based inclusive)
+ * @field rds_f         Start coordinate on read's forward strand (0-based inclusive)
+ * @field rde_f         End coordinate on read's forward strand (0-based inclusive)
+ * @field data		Pointer to some data attached to the block
+ * @field free_data	Function for freeing the memory allocated to data
+ */
+typedef struct {
+    int rfs; // ref start
+    int rfe; // ref end
+    int sqs; // seq start
+    int sqe; // seq end
+    int rds_f;
+    int rde_f;
+    void *data;
+
+    void (*destruct_data)(void *);
+
+    void *(*copy_data)(void *);
+
+    void (*extend_data)(void *, void *);
+} ptBlock;
 
 
 /* Construct a ptBlock structure

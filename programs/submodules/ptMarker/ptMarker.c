@@ -2,24 +2,6 @@
 #include "ptBlock.h"
 #include "cigar_it.h"
 
-/*! @typedef
- * @abstract Structure for saving a marker's information.
- * @field alignment_idx	    Index of the alignment (could be secondary or primary) from where this marker is taken
- * @field read_pos_f	    Position of the marker in the read (All positions should be computed w.r.t
- * 				            the forward strand for the inconsistency between negative and positive alignments)
- * @field base_idx		    Index of the base in the query seq of the corresponding alignment. It may be different
- * 				            from read_pos_f because of two reasons; negative orientation and hard clipping
- * @field base_q		    Base quality of the marker (could be the raw quality or any processed form e.g BAQ)
- * @field is_match		    True if the marker base is equal to the reference and False otherwise
- */
-struct ptMarker_{
-    int32_t alignment_idx;
-    int32_t read_pos_f;
-    int32_t base_idx;
-    int32_t base_q;
-    bool is_match;
-    int32_t ref_pos;
-};
 
 ptMarker *ptMarker_construct(int32_t alignment_idx, int32_t base_idx, int32_t read_pos_f, uint8_t base_q, bool is_match,
                              int32_t ref_pos) {
