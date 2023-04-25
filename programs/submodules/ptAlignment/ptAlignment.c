@@ -1,5 +1,31 @@
 #include "ptAlignment.h"
 
+/*
+ * @abstract Structure for saving a block
+ * @field rfs           Start coordinate on reference (0-based inclusive)
+ * @field rfe           End coordinate on reference (0-based inclusive)
+ * @field sqs           Start coordinate on sequence (0-based inclusive)
+ * @field sqe           End coordinate on sequence (0-based inclusive)
+ * @field rds_f         Start coordinate on read's forward strand (0-based inclusive)
+ * @field rde_f         End coordinate on read's forward strand (0-based inclusive)
+ * @field data		Pointer to some data attached to the block
+ * @field free_data	Function for freeing the memory allocated to data
+ */
+struct ptBlock_{
+    int rfs; // ref start
+    int rfe; // ref end
+    int sqs; // seq start
+    int sqe; // seq end
+    int rds_f;
+    int rde_f;
+    void *data;
+
+    void (*destruct_data)(void *);
+
+    void *(*copy_data)(void *);
+
+    void (*extend_data)(void *, void *);
+};
 
 ptAlignment *ptAlignment_construct(bam1_t *record, sam_hdr_t *sam_hdr) {
     ptAlignment *alignment = (ptAlignment *) malloc(sizeof(ptAlignment));
