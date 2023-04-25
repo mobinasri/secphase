@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
                 conf_b = 20;
                 min_q = 10;
                 set_q = 40;
-                prim_margin_score = 50;
-                prim_margin_random = 50;
+                prim_margin_score = 0;
+                prim_margin_random = 0;
                 min_score = -50;
                 break;
             case 'y':
