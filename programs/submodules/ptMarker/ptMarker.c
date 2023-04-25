@@ -830,4 +830,10 @@ void print_markers(stList *markers) {
     }
 }
 
+ptBlock* ptMarker_convert_to_block(ptMarker* marker){
+    ptBlock* block = ptBlock_construct(marker->ref_pos, marker->ref_pos,
+                                       marker->base_idx, marker->base_idx,
+                                       marker->read_pos_f, marker->read_pos_f);
+    return block;
+}
 

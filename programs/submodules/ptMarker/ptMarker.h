@@ -340,4 +340,6 @@ void calc_update_baq_all(const faidx_t* fai,
 
 void print_markers(stList* markers);
 
+ptBlock* ptMarker_convert_to_block(ptMarker* marker);
+
 #endif /* PT_MARKER_H */

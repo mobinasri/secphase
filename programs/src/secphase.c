@@ -275,7 +275,7 @@ int main(int argc, char *argv[]) {
                                                                                     fai,
                                                                                     min_var_margin);
         char bed_path_ref_blocks[200];
-        snprintf(bed_path_ref_blocks, 200, "%s/%s.variant_ref_blocks.bed", dirPath, prefix);
+        snprintf(bed_path_ref_blocks, 200, "%s/%s.initial_variant_blocks.bed", dirPath, prefix);
         ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     } else {
         // if no vcf is given just make an empty table
@@ -309,8 +309,9 @@ int main(int argc, char *argv[]) {
     stHash *modified_blocks_by_marker_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                                      (void (*)(void *)) stList_destruct);
 
-    stHash *variant_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
-                                                                   (void (*)(void *)) stList_destruct);
+    stHash *variant_and_marker_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey,
+                                                                              NULL,
+                                                                              (void (*)(void *)) stList_destruct);
     int bytes_read;
     int conf_blocks_length;
     int reads_modified_by_vars = 0;
@@ -331,8 +332,8 @@ int main(int argc, char *argv[]) {
             // Only one primary alignment should exist per read
             if ((alignments_len > 1) &&
                 (alignments_len <= 10) &&
-                    (ptAlignment_supplementary_count(alignments, alignments_len) == 0) &&
-                    (ptAlignment_primary_count(alignments, alignments_len) == 1)){
+                (ptAlignment_supplementary_count(alignments, alignments_len) == 0) &&
+                (ptAlignment_primary_count(alignments, alignments_len) == 1)) {
                 // Check if there is any variant block encompassed by any alignment
                 // If that is met then select the best alignment based on their edit distances
                 // to the variant blocks
@@ -360,10 +361,11 @@ int main(int argc, char *argv[]) {
                         int primary_idx = get_primary_index(alignments, alignments_len);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx]);
-                        ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
+                        // add variant blocks
+                        ptBlock_add_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
                                                      alignments[primary_idx]->contig,
                                                      variant_blocks_all_haps[primary_idx]);
-                        ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
+                        ptBlock_add_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
                                                      alignments[best_idx]->contig,
                                                      variant_blocks_all_haps[best_idx]);
                         reads_modified_by_vars += 1;
@@ -409,10 +411,19 @@ int main(int argc, char *argv[]) {
                         fprintf(output_log_file, "$\t%s\n", read_name);
                         print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER,
                                                output_log_file);
-                        // add modified blocks
+                        // add modified blocks based on modified read coordinates
                         int primary_idx = get_primary_index(alignments, alignments_len);
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
+                        // add marker blocks
+                        ptBlock_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                                                            alignments[primary_idx]->contig,
+                                                            primary_idx,
+                                                            markers);
+                        ptBlock_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                                                            alignments[best_idx]->contig,
+                                                            best_idx,
+                                                            markers);
                         reads_modified_by_marker += 1;
                     }
                     stList_destruct(markers);
@@ -453,8 +464,8 @@ int main(int argc, char *argv[]) {
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
                           bed_path_modified_blocks);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.var_blocks.all_haps.bed", dirPath, prefix);
-    merge_and_save_blocks(variant_blocks_all_haps_per_contig, "projected variant blocks on all haplotypes",
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.all_haps.bed", dirPath, prefix);
+    merge_and_save_blocks(variant_and_marker_blocks_all_haps_per_contig, "projected variant/marker blocks on all haplotypes",
                           bed_path_modified_blocks);
 
 
