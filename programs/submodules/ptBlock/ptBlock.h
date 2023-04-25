@@ -8,7 +8,6 @@
 #include "sonLib.h"
 #include "stdlib.h"
 #include "ptAlignment.h"
-#include "ptMarker.h"
 
 /*
  * @abstract Structure for saving a block
@@ -201,8 +200,6 @@ void ptBlock_save_in_bed(stHash *blocks_per_contig, char* bed_path);
 int ptBlock_get_total_number(stHash *blocks_per_contig);
 
 void ptBlock_add_blocks_by_contig(stHash *blocks_per_contig, char* contig, stList* blocks_to_add);
-
-void ptBlock_add_marker_blocks_by_contig(stHash *blocks_per_contig, char* contig, int alignment_idx, stList* markers);
 
 
 #endif /* PT_BLOCK_H */

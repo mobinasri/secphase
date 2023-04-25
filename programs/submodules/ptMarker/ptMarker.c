@@ -838,3 +838,19 @@ ptBlock* ptMarker_convert_to_block(ptMarker* marker){
     return block;
 }
 
+void ptMarker_add_marker_blocks_by_contig(stHash *blocks_per_contig, char* contig, int alignment_idx, stList* markers){
+    stList *blocks = stHash_search(blocks_per_contig, contig);
+    if (blocks == NULL) {
+        blocks = stList_construct3(0, ptBlock_destruct);
+        // contig name should be copied prior to inserting as a key
+        stHash_insert(blocks_per_contig, copyString(contig), blocks);
+    }
+    for (int i =0; i < stList_length(markers); i++){
+        ptMarker* marker = stList_get(markers, i);
+        // add marker block only if its alignment index matches the given index
+        if(marker->alignment_idx == alignment_idx) {
+            stList_append(blocks, ptMarker_convert_to_block(marker));
+        }
+    }
+}
+

@@ -416,11 +416,11 @@ int main(int argc, char *argv[]) {
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
                         // add marker blocks
-                        ptBlock_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                        ptMarker_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
                                                             alignments[primary_idx]->contig,
                                                             primary_idx,
                                                             markers);
-                        ptBlock_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                        ptMarker_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
                                                             alignments[best_idx]->contig,
                                                             best_idx,
                                                             markers);
