@@ -366,7 +366,7 @@ void ptBlock_add_marker_blocks_by_contig(stHash *blocks_per_contig, char* contig
         stHash_insert(blocks_per_contig, copyString(contig), blocks);
     }
     for (int i =0; i < stList_length(markers); i++){
-        ptBlock* marker = stList_get(markers, i);
+        ptMarker* marker = stList_get(markers, i);
         // add marker block only if its alignment index matches the given index
         if(marker->alignment->idx == alignment_idx) {
             stList_append(blocks, ptMarker_convert_to_block(marker));
