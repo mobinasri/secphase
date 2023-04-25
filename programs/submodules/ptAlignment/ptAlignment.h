@@ -65,10 +65,14 @@ void ptAlignment_init_coordinates(ptAlignment* alignment);
 void ptAlignment_destruct(ptAlignment* alignment);
 
 /**
- * Check if there is a supplementary alignment among
- * the given list of alignments
+ * Get the number of supplementary alignments
  */
-bool ptAlignment_contain_supp(ptAlignment** alignments, int alignments_len);
+bool ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_len);
+
+/**
+ * Get the number of primary alignments
+ */
+bool ptAlignment_primary_count(ptAlignment **alignments, int alignments_len);
 
 
 /**

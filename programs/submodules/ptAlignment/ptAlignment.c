@@ -83,13 +83,21 @@ void ptAlignment_destruct(ptAlignment *alignment) {
     free(alignment);
 }
 
-bool ptAlignment_contain_supp(ptAlignment **alignments, int alignments_len) {
+bool ptAlignment_supplementary_count(ptAlignment **alignments, int alignments_len) {
+    int supp_count = 0;
     for (int i = 0; i < alignments_len; i++) {
-        if (alignments[i]->record->core.flag & BAM_FSUPPLEMENTARY) return 1;
+        if (alignments[i]->record->core.flag & BAM_FSUPPLEMENTARY) supp_count += 1;
     }
-    return 0;
+    return supp_count;
 }
 
+bool ptAlignment_primary_count(ptAlignment **alignments, int alignments_len) {
+    int primary_count = 0;
+    for (int i = 0; i < alignments_len; i++) {
+        if (alignments[i]->record->core.flag & BAM_FSECONDARY == 0) primary_count += 1;
+    }
+    return primary_count;
+}
 
 void print_contigs(ptAlignment **alignments, int alignments_len) {
     DEBUG_PRINT("\nalignments:\n");

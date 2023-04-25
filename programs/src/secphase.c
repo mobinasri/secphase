@@ -328,9 +328,11 @@ int main(int argc, char *argv[]) {
             // Check if we have more than one alignment
             // and also not too many (more than 10) alignments
             // Secphase currently does not support supplementary alignments
+            // Only one primary alignment should exist per read
             if ((alignments_len > 1) &&
                 (alignments_len <= 10) &&
-                !ptAlignment_contain_supp(alignments, alignments_len)) {
+                ptAlignment_supplementary_count(alignments, alignments_len) == 0 &&
+                ptAlignment_primary_count(alignments, alignments_len) == 1){
                 // Check if there is any variant block encompassed by any alignment
                 // If that is met then select the best alignment based on their edit distances
                 // to the variant blocks
@@ -338,8 +340,13 @@ int main(int argc, char *argv[]) {
                 if (overlap_variant_ref_blocks(variant_ref_blocks_per_contig, alignments, alignments_len)) {
                     merged_variant_read_blocks = ptVariant_get_merged_variant_read_blocks(variant_ref_blocks_per_contig,
                                                                                           alignments, alignments_len);
+                    // Set it to NULL if there is no block
+                    if (stList_length(merged_variant_read_blocks) == 0) {
+                        stList_destruct(merged_variant_read_blocks);
+                        merged_variant_read_blocks = NULL;
+                    }
                 }
-                if (merged_variant_read_blocks != NULL && stList_length(merged_variant_read_blocks) > 0) {
+                if (merged_variant_read_blocks != NULL) {
                     stList **variant_blocks_all_haps = set_scores_as_edit_distances(merged_variant_read_blocks,
                                                                                     alignments, alignments_len, fai);
                     int best_idx = get_best_record_index(alignments, alignments_len, 0, -100, 0);
@@ -351,7 +358,6 @@ int main(int argc, char *argv[]) {
                                                output_log_file);
                         // add modified blocks
                         int primary_idx = get_primary_index(alignments, alignments_len);
-                        assert(primary_idx != -1);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx]);
                         ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
@@ -405,7 +411,6 @@ int main(int argc, char *argv[]) {
                                                output_log_file);
                         // add modified blocks
                         int primary_idx = get_primary_index(alignments, alignments_len);
-                        assert(primary_idx != -1);
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
                         reads_modified_by_marker += 1;
