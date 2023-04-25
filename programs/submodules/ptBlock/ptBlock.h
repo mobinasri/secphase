@@ -8,6 +8,7 @@
 #include "sonLib.h"
 #include "stdlib.h"
 #include "ptAlignment.h"
+#include "ptMarker.h"
 
 /*
  * @abstract Structure for saving a block
