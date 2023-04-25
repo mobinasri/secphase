@@ -331,8 +331,8 @@ int main(int argc, char *argv[]) {
             // Only one primary alignment should exist per read
             if ((alignments_len > 1) &&
                 (alignments_len <= 10) &&
-                ptAlignment_supplementary_count(alignments, alignments_len) == 0 &&
-                ptAlignment_primary_count(alignments, alignments_len) == 1){
+                    (ptAlignment_supplementary_count(alignments, alignments_len) == 0) &&
+                    (ptAlignment_primary_count(alignments, alignments_len) == 1)){
                 // Check if there is any variant block encompassed by any alignment
                 // If that is met then select the best alignment based on their edit distances
                 // to the variant blocks
