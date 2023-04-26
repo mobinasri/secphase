@@ -150,8 +150,8 @@ int main(int argc, char *argv[]) {
                 conf_b = 20;
                 min_q = 10;
                 set_q = 40;
-                prim_margin_score = 50;
-                prim_margin_random = 50;
+                prim_margin_score = 0;
+                prim_margin_random = 0;
                 min_score = -50;
                 break;
             case 'y':
@@ -456,15 +456,15 @@ int main(int argc, char *argv[]) {
     // merge blocks and save in a bed file
     char bed_path_modified_blocks[200];
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.variants.bed", dirPath, prefix);
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants",
                           bed_path_modified_blocks);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.markers.bed", dirPath, prefix);
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
                           bed_path_modified_blocks);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.all_haps.bed", dirPath, prefix);
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.bed", dirPath, prefix);
     merge_and_save_blocks(variant_and_marker_blocks_all_haps_per_contig, "projected variant/marker blocks on all haplotypes",
                           bed_path_modified_blocks);
 
