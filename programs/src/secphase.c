@@ -102,8 +102,8 @@ int main(int argc, char *argv[]) {
     int indel_threshold = 10;
     int min_q = 20;
     int min_score = -50;
-    double prim_margin_score = 50;
-    double prim_margin_random = 50;
+    double prim_margin_score = 40;
+    double prim_margin_random = 0;
     int set_q = 40;
     int min_var_margin = 50;
     int min_gq = 10;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
                 conf_b = 20;
                 min_q = 10;
                 set_q = 40;
-                prim_margin_score = 0;
+                prim_margin_score = 40;
                 prim_margin_random = 0;
                 min_score = -50;
                 break;
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
                 min_q = 10;
                 set_q = 20;
                 prim_margin_score = 10;
-                prim_margin_random = 10;
+                prim_margin_random = 0;
                 min_score = -50;
                 break;
             case 'q':

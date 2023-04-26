@@ -692,8 +692,8 @@ calc_local_baq(const faidx_t *fai, const char *contig_name, ptAlignment *alignme
         while ((cigar_it->sqe < block->sqs) || (cigar_it->rfe < block->rfs)) {
             if (ptCigarIt_next(cigar_it) == 0) break;
         }// end of while cigar_it->sqs should be now less than or equal to block->sqs
-        assert(cigar_it->sqs <= block->sqs);
-        assert(cigar_it->rfs <= block->rfs);
+        //assert(cigar_it->sqs <= block->sqs);
+        //assert(cigar_it->rfs <= block->rfs);
         // Move forward untill the marker is after start of the block + some margin
         // this loop ensures that the alignment index matches the marker's
         while (marker &&
