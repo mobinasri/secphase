@@ -464,7 +464,7 @@ int main(int argc, char *argv[]) {
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
                           bed_path_modified_blocks);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.all_haps.bed", dirPath, prefix);
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.bed", dirPath, prefix);
     merge_and_save_blocks(variant_and_marker_blocks_all_haps_per_contig, "projected variant/marker blocks on all haplotypes",
                           bed_path_modified_blocks);
 
