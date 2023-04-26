@@ -456,11 +456,11 @@ int main(int argc, char *argv[]) {
     // merge blocks and save in a bed file
     char bed_path_modified_blocks[200];
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.variants.bed", dirPath, prefix);
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants",
                           bed_path_modified_blocks);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_blocks.markers.bed", dirPath, prefix);
+    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
                           bed_path_modified_blocks);
 
