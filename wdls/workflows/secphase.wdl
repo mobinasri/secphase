@@ -108,7 +108,7 @@ task secphase {
         BAM_PREFIX=${BAM_FILENAME%.bam}
 
         ln ~{diploidAssemblyFastaGz} asm.fa.gz
-        gunzip asm.fa.gz
+        gunzip -c asm.fa.gz > asm.fa
         samtools faidx asm.fa
 
         mkdir output
