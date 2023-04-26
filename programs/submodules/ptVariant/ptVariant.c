@@ -142,7 +142,7 @@ void ptVariant_swap_gt(stList *variants, int start, int end) {
 }
 
 
-stList *read_phased_variants(char *vcf_path, bool consistent_gt) {
+stList *read_phased_variants(char *vcf_path, bool consistent_gt, int min_gq) {
 
     stList *variants = stList_construct3(0, ptVariant_destruct);
 
@@ -212,6 +212,9 @@ stList *read_phased_variants(char *vcf_path, bool consistent_gt) {
         bcf_fmt_t *fmt_gq = bcf_get_fmt(hdr, rec, "GQ");
         assert(fmt_gq->type == BCF_BT_INT8);
         int8_t gq = fmt_gq->p[0];
+
+        // check genotype quality
+        if(gq < min_gq) continue;
 
         // get phase block id
         bcf_fmt_t *fmt_ps = bcf_get_fmt(hdr, rec, "PS");
@@ -742,8 +745,8 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
 }
 
 
-stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin) {
-    stList *phased_variants = read_phased_variants(vcf_path, true);
+stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin, int min_gq) {
+    stList *phased_variants = read_phased_variants(vcf_path, true, min_gq);
     fprintf(stdout, "[%s] Number of parsed phased variants = %d\n", get_timestamp(), stList_length(phased_variants));
 
     stHash *blocks_per_contig;

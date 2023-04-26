@@ -126,7 +126,7 @@ void ptVariant_swap_gt(stList *variants, int start, int end);
 /**
    @param vcf_path	The path to a vcf file
 */
-stList *read_phased_variants(char *vcf_path, bool consistent_gt);
+stList *read_phased_variants(char *vcf_path, bool consistent_gt, int min_gq);
 
 
 // 
@@ -273,9 +273,10 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
  * @param vcf_path		Path to VCF file with phased variants
  * @param fai                   Fasta index
  * @param min_margin		Minimum size of the block surrounding each variant
+ * @param min_gq		Minimum genotype quality
  *
  */
-stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin);
+stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin, int min_gq);
 
 
 //

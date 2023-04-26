@@ -90,6 +90,7 @@ static struct option long_options[] =
                 {"prefix",            required_argument, NULL, 'P'},
                 {"outDir",            required_argument, NULL, 'o'},
                 {"variantBed",        required_argument, NULL, 'B'},
+                {"minGQ",             required_argument, NULL, 'G'},
                 {NULL,                0,                 NULL, 0}
         };
 
@@ -105,6 +106,7 @@ int main(int argc, char *argv[]) {
     double prim_margin_random = 50;
     int set_q = 40;
     int min_var_margin = 50;
+    int min_gq = 10;
     double conf_d = 1e-4;
     double conf_e = 0.1;
     double conf_b = 20;
@@ -123,7 +125,7 @@ int main(int argc, char *argv[]) {
     bool preset_hifi = false;
     bool marker_mode = true;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-    while (~(c = getopt_long(argc, argv, "i:p:P:o:f:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
+    while (~(c = getopt_long(argc, argv, "i:p:P:G:o:f:v:qd:e:b:n:r:m:ct:s:B:g:xyMh", long_options, NULL))) {
         switch (c) {
             case 'i':
                 strcpy(inputPath, optarg);
@@ -136,6 +138,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'P':
                 strcpy(prefix, optarg);
+                break;
+            case 'G':
+                min_gq = atoi(optarg);
                 break;
             case 'o':
                 strcpy(dirPath, optarg);
@@ -251,6 +256,8 @@ int main(int argc, char *argv[]) {
                         "         --minScore, -n         Minimum marker score of the selected secondary alignment [Default: -50]\n");
                 fprintf(stderr,
                         "         --minVariantMargin, -g         Minimum margin for creating blocks around phased variants [Default: 50]\n");
+                fprintf(stderr,
+                        "         --minGQ, -G         Minimum genotype quality of the phased variants [Default: 10]\n");
                 return 1;
         }
     }
@@ -273,7 +280,8 @@ int main(int argc, char *argv[]) {
     if (vcfPath != NULL && vcfPath[0] != NULL) {
         variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
                                                                                     fai,
-                                                                                    min_var_margin);
+                                                                                    min_var_margin,
+                                                                                    min_gq);
         char bed_path_ref_blocks[200];
         snprintf(bed_path_ref_blocks, 200, "%s/%s.initial_variant_blocks.bed", dirPath, prefix);
         ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
@@ -417,13 +425,13 @@ int main(int argc, char *argv[]) {
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
                         // add marker blocks
                         ptMarker_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
-                                                            alignments[primary_idx]->contig,
-                                                            primary_idx,
-                                                            markers);
+                                                             alignments[primary_idx]->contig,
+                                                             primary_idx,
+                                                             markers);
                         ptMarker_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
-                                                            alignments[best_idx]->contig,
-                                                            best_idx,
-                                                            markers);
+                                                             alignments[best_idx]->contig,
+                                                             best_idx,
+                                                             markers);
                         reads_modified_by_marker += 1;
                     }
                     stList_destruct(markers);
@@ -465,7 +473,8 @@ int main(int argc, char *argv[]) {
                           bed_path_modified_blocks);
 
     snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.bed", dirPath, prefix);
-    merge_and_save_blocks(variant_and_marker_blocks_all_haps_per_contig, "projected variant/marker blocks on all haplotypes",
+    merge_and_save_blocks(variant_and_marker_blocks_all_haps_per_contig,
+                          "projected variant/marker blocks on all haplotypes",
                           bed_path_modified_blocks);
 
 
