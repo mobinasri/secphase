@@ -113,11 +113,10 @@ task secphase {
         samtools faidx asm.fa
 
         mkdir output
-        COMMAND=~{true="secphase_debug" false="secphase" debugMode}
         if [[ -n "~{phasedVcf}" ]];then
-            ${COMMAND} ~{options} -v ~{phasedVcf} -B ~{variantBed} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+            secphase ~{options} -v ~{phasedVcf} -B ~{variantBed} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         else
-            ${COMMAND} ~{options} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+            secphase ~{options} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         fi
     >>>
     runtime {
