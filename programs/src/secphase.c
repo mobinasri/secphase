@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
                 set_q = 40;
                 prim_margin_score = 40;
                 prim_margin_random = 0;
-                min_score = -50;
+                min_score = -10;
                 break;
             case 'y':
                 preset_ont = true;
