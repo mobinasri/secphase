@@ -107,15 +107,16 @@ task secphase {
         BAM_FILENAME=$(basename ~{bamFile})
         BAM_PREFIX=${BAM_FILENAME%.bam}
 
-        gunzip -c ~{diploidAssemblyFastaGz} > asm.fa
+        ln ~{bamFile} alignment.bam
+        ln ~{diploidAssemblyFastaGz} asm.fa.gz
+        gunzip -c asm.fa.gz > asm.fa
         samtools faidx asm.fa
 
         mkdir output
-        COMMAND=~{true="secphase_debug" false="secphase" debugMode}
         if [[ -n "~{phasedVcf}" ]];then
-            ${COMMAND} ~{options} -v ~{phasedVcf} -B ~{variantBed} -i ~{bamFile} -f asm.fa --outDir output --prefix ~{prefix}
+            secphase ~{options} -v ~{phasedVcf} -B ~{variantBed} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         else
-            ${COMMAND} ~{options} -i ~{bamFile} -f asm.fa --outDir output --prefix ~{prefix}
+            secphase ~{options} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         fi
     >>>
     runtime {
