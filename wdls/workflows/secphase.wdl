@@ -4,14 +4,17 @@ workflow runSecPhase{
     input {
         File inputBam
         File diploidAssemblyFastaGz
+        File? phasedVcf
+        File? variantBed
         String secphaseOptions = "--hifi"
         String secphaseDockerImage = "mobinasri/secphase:v0.2.0"
+        String version = "v0.2.0"
         Boolean debugMode = false
     }
     call sortByName{
          input:
              bamFile = inputBam,
-             diskSize = 6 * ceil(size(inputBam, "GB")) + 64
+             diskSize = 7 * ceil(size(inputBam, "GB")) + 64
     }
     call splitByName{
          input:
@@ -23,27 +26,52 @@ workflow runSecPhase{
             input:
                 bamFile = splitBam,
                 diploidAssemblyFastaGz = diploidAssemblyFastaGz,
+                phasedVcf = phasedVcf,
+                variantBed = variantBed,
                 debugMode = debugMode,
                 options = secphaseOptions,
                 dockerImage = secphaseDockerImage,
                 diskSize = ceil(size(splitBam, "GB")) + 64
         }
     }
-    call concatLogs as concatErrLogs{
-        input:
-            logs = secphase.errLog,
-            filename = basename("${inputBam}", ".bam") + ".phasing_err",
-            diskSize = 256
-    }
+
     call concatLogs as concatOutLogs{
         input:
             logs = secphase.outLog,
-            filename = basename("${inputBam}", ".bam") + ".phasing_out"
+            filename = basename("${inputBam}", ".bam") + "secphase_${version}.phasing_out"
+    }
+    
+    call mergeBeds as mergeVariantAndMarkerBlocks{
+        input:
+            beds = secphase.variantAndMarkerBlocksBed,
+            filename = basename("${inputBam}", ".bam") + "secphase_${version}.variant_and_marker_blocks.bed"
+    }
+
+    call mergeBeds as mergeModifiedReadBlocksVariants{
+        input:
+            beds = secphase.modifiedReadBlocksVariantsBed,
+            filename = basename("${inputBam}", ".bam") + "secphase_${version}.modified_read_blocks.variants.bed"
+    }
+   
+    call mergeBeds as mergeModifiedReadBlocksMarkers{
+        input:
+            beds = secphase.modifiedReadBlocksMarkersBed,
+            filename = basename("${inputBam}", ".bam") + "secphase_${version}.modified_read_blocks.markers.bed"
+    }
+    
+    call mergeBeds as mergeInitialVariantBlocks{
+        input:
+            beds = secphase.initalVariantBlocksBed,
+            filename = basename("${inputBam}", ".bam") + "secphase_${version}.initial_variant_blocks.bed"
     }
 
     output{
-        File errLog = concatErrLogs.log
         File outLog = concatOutLogs.log
+        File variantAndMarkerBlocksBed = mergeVariantAndMarkerBlocks.mergedBed
+        File modifiedReadBlocksVariantsBed = mergeModifiedReadBlocksVariants.mergedBed
+        File modifiedReadBlocksMarkersBed = mergeModifiedReadBlocksMarkers.mergedBed
+        File initalVariantBlocksBed = mergeInitialVariantBlocks.mergedBed
+        
     }
 }
 
@@ -51,8 +79,11 @@ task secphase {
     input {
         File bamFile
         File diploidAssemblyFastaGz
+        File? phasedVcf
+        File? variantBed
         String options = "--hifi"
-        Boolean debugMode
+        String prefix = "secphase"
+        Boolean debugMode = false
         # runtime configurations
         Int memSize=4
         Int threadCount=2
@@ -76,12 +107,17 @@ task secphase {
         BAM_FILENAME=$(basename ~{bamFile})
         BAM_PREFIX=${BAM_FILENAME%.bam}
 
-        gunzip -c ~{diploidAssemblyFastaGz} > asm.fa
+        ln ~{bamFile} alignment.bam
+        ln ~{diploidAssemblyFastaGz} asm.fa.gz
+        gunzip -c asm.fa.gz > asm.fa
         samtools faidx asm.fa
 
         mkdir output
-        COMMAND=~{true="secphase_debug" false="secphase" debugMode}
-        ${COMMAND} ~{options} -i ~{bamFile} -f asm.fa 2> err.log > out.log || true
+        if [[ -n "~{phasedVcf}" ]];then
+            secphase ~{options} -v ~{phasedVcf} -B ~{variantBed} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+        else
+            secphase ~{options} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+        fi
     >>>
     runtime {
         docker: dockerImage
@@ -92,8 +128,11 @@ task secphase {
         zones : zones
     }
     output {
-        File errLog = "err.log"
-        File outLog = "out.log"
+        File outLog = "output/~{prefix}.out.log"
+        File initalVariantBlocksBed = "output/~{prefix}.initial_variant_blocks.bed"
+        File modifiedReadBlocksVariantsBed = "output/~{prefix}.modified_read_blocks.variants.bed"
+        File modifiedReadBlocksMarkersBed = "output/~{prefix}.modified_read_blocks.markers.bed"
+        File variantAndMarkerBlocksBed = "output/~{prefix}.variant_and_marker_blocks.bed"
     }
 }
 
@@ -134,6 +173,47 @@ task concatLogs {
     }
     output {
         File log = glob("output/*.txt")[0]
+    }
+}
+
+
+task mergeBeds {
+    input {
+        Array[File] beds
+        String filename
+        # runtime configurations
+        Int memSize=2
+        Int threadCount=1
+        Int diskSize=32
+        String dockerImage="mobinasri/secphase:v0.2.0"
+        Int preemptible=2
+        String zones="us-west2-a"
+    }
+    command <<<
+        # Set the exit code of a pipeline to that of the rightmost command
+        # to exit with a non-zero status, or zero if all commands of the pipeline exit
+        set -o pipefail
+        # cause a bash script to exit immediately when a command fails
+        set -e
+        # cause the bash shell to treat unset variables as an error and exit immediately
+        set -u
+        # echo each line of the script to stdout so we can see what is happening
+        # to turn off echo do 'set +o xtrace'
+        set -o xtrace
+
+        mkdir output
+        cat ~{sep=" " beds} | bedtools sort -i - | bedtools merge -i - > output/~{filename}.bed
+    >>>
+    runtime {
+        docker: dockerImage
+        memory: memSize + " GB"
+        cpu: threadCount
+        disks: "local-disk " + diskSize + " SSD"
+        preemptible : preemptible
+        zones : zones
+    }
+    output {
+        File mergedBed = glob("output/*.bed")[0]
     }
 }
 
