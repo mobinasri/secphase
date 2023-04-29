@@ -100,8 +100,8 @@ int main(int argc, char *argv[]) {
     bool baq_flag = false;
     bool consensus = false;
     int indel_threshold = 10;
-    int min_q = 20;
-    int min_score = -50;
+    int min_q = 10;
+    int min_score = -10;
     double prim_margin_score = 40;
     double prim_margin_random = 0;
     int set_q = 40;
@@ -169,9 +169,9 @@ int main(int argc, char *argv[]) {
                 conf_b = 20;
                 min_q = 10;
                 set_q = 20;
-                prim_margin_score = 10;
+                prim_margin_score = 20;
                 prim_margin_random = 0;
-                min_score = -50;
+                min_score = -10;
                 break;
             case 'q':
                 baq_flag = true;
@@ -232,9 +232,9 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr,
                         "         --disableMarkerMode, -M         If alignments do not overlap with variants Secphase will not switch to marker mode\n");
                 fprintf(stderr,
-                        "         --hifi, -x         hifi preset params (only for marker mode) [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p50 -r50 -n -50] (Only one of --hifi or --ont should be enabled)\n");
+                        "         --hifi, -x         hifi preset params (only for marker mode) [-q -c -t10 -d 1e-4 -e 0.1 -b20 -m10 -s40 -p40 -r0 -n -10] (Only one of --hifi or --ont should be enabled)\n");
                 fprintf(stderr,
-                        "         --ont, -y        ont present params (only for marker mode) [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p10 -r10 -n -50] (Only one of --hifi or --ont should be enabled) \n");
+                        "         --ont, -y        ont preset params (only for marker mode) [-q -c -t20 -d 1e-3 -e 0.1 -b20 -m10 -s20 -p20 -r0 -n -10] (Only one of --hifi or --ont should be enabled) \n");
                 fprintf(stderr, "         --baq, -q         Calculate BAQ [Disabled by default]\n");
                 fprintf(stderr, "         --gapOpen, -d         Gap prob [Default: 1e-4, (for ONT use 1e-2)]\n");
                 fprintf(stderr, "         --gapExt, -e         Gap extension [Default: 0.1]\n");
@@ -248,12 +248,12 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr,
                         "         --minQ, -m         Minimum base quality (or BAQ if -q is set) to be considered as a marker  [Default: 20 (for ONT use 10)]\n");
                 fprintf(stderr,
-                        "         --primMarginScore, -p         Minimum margin between the consistency score of primary and secondary alignment to select the secondary alignment [Default: 50]\n");
+                        "         --primMarginScore, -p         Minimum margin between the consistency score of primary and secondary alignment to select the secondary alignment [Default: 40]\n");
                 fprintf(stderr,
-                        "         --primMarginRandom, -r         Maximum margin between the consistency score of primary and secondary alignment to select one randomly [Default: 50]\n");
+                        "         --primMarginRandom, -r         Maximum margin between the consistency score of primary and secondary alignment to select one randomly [Default: 0]\n");
 
                 fprintf(stderr,
-                        "         --minScore, -n         Minimum marker score of the selected secondary alignment [Default: -50]\n");
+                        "         --minScore, -n         Minimum marker score of the selected secondary alignment [Default: -10]\n");
                 fprintf(stderr,
                         "         --minVariantMargin, -g         Minimum margin for creating blocks around phased variants [Default: 50]\n");
                 fprintf(stderr,
