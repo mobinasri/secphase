@@ -242,6 +242,8 @@ void remove_all_mismatch_markers(stList **markers_p, int alignments_len) {
     stList_destruct(markers);
     // update the list
     *markers_p = keep_markers;
+    // free
+    free(markers_keep_flags);
 }
 
 
