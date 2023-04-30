@@ -72,9 +72,6 @@ def find_homozygous_regions(paf_line, min_length):
                 hom_block_chrom = (alignment.chromName, block_chrom_start, block_chrom_start +  cigar[1])
                 hom_regions.append([hom_block_chrom, hom_block_contig])
 
-                with open("/Users/miramastoras/Desktop/debug.txt", 'a') as out:
-                    print(cigar, hom_block_contig, hom_block_chrom, alignment.orientation, sep="\t", file=out)
-
             # move start by # bases mismatch, for both ref and query
             block_chrom_start = block_chrom_start + cigar[1]
             block_contig_start = block_contig_start + (multiplier * cigar[1])
