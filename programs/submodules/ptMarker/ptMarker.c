@@ -200,6 +200,7 @@ void filter_ins_markers(stList **markers_p, ptAlignment **alignments, int alignm
     }
     stList_destruct(markers);
     *markers_p = keep_markers;
+    // free memory
     free(markers_keep_flags);
 }
 
