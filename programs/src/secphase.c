@@ -284,15 +284,13 @@ int main(int argc, char *argv[]) {
                                                                                     fai,
                                                                                     min_var_margin,
                                                                                     min_gq);
-        ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     } else {
         // if no vcf is given just make an empty table
         variant_ref_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                           (void (*)(void *)) stList_destruct);
-        // make an empty file
-        FILE* bed_file_ref_blocks = fopen(bed_path_ref_blocks, "w+");
-        fclose(bed_file_ref_blocks);
     }
+    ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
+
 
     if (preset_ont && preset_hifi) {
         fprintf(stderr, "[%s] Presets --hifi and --ont cannot be enabled at the same time. Select only one of them!\n",
