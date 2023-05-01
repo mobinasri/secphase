@@ -69,6 +69,7 @@ stList *ptMarker_get_initial_markers(ptAlignment **alignments, int alignments_le
                 }
             }
         }
+        ptCigarIt_destruct(cigar_it);
     }
     return markers;
 }

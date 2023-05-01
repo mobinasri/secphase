@@ -91,6 +91,7 @@ void ptAlignment_init_coordinates(ptAlignment *alignment) {
             alignment->rde_f = cigar_it->rde_f;
         }
     }
+    ptCigarIt_destruct(cigar_it);
 }
 
 void ptAlignment_destruct(ptAlignment *alignment) {
