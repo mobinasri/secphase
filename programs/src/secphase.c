@@ -277,18 +277,21 @@ int main(int argc, char *argv[]) {
     faidx_t *fai = fai_load(fastaPath);
 
     stHash *variant_ref_blocks_per_contig;
+    char bed_path_ref_blocks[200];
+    snprintf(bed_path_ref_blocks, 200, "%s/%s.initial_variant_blocks.bed", dirPath, prefix);
     if (vcfPath != NULL && vcfPath[0] != NULL) {
         variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
                                                                                     fai,
                                                                                     min_var_margin,
                                                                                     min_gq);
-        char bed_path_ref_blocks[200];
-        snprintf(bed_path_ref_blocks, 200, "%s/%s.initial_variant_blocks.bed", dirPath, prefix);
         ptVariant_save_variant_ref_blocks(variant_ref_blocks_per_contig, bed_path_ref_blocks);
     } else {
         // if no vcf is given just make an empty table
         variant_ref_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                           (void (*)(void *)) stList_destruct);
+        // make an empty file
+        FILE* bed_file_ref_blocks = fopen(bed_path_ref_blocks, "w+");
+        fclose(bed_file_ref_blocks);
     }
 
     if (preset_ont && preset_hifi) {
