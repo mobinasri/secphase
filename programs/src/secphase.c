@@ -318,9 +318,12 @@ int main(int argc, char *argv[]) {
     stHash *modified_blocks_by_marker_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                                      (void (*)(void *)) stList_destruct);
 
-    stHash *variant_and_marker_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey,
-                                                                              NULL,
-                                                                              (void (*)(void *)) stList_destruct);
+    stHash *variant_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey,
+                                                                   NULL,
+                                                                   (void (*)(void *)) stList_destruct);
+    stHash *marker_blocks_all_haps_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey,
+                                                                  NULL,
+                                                                  (void (*)(void *)) stList_destruct);
     int bytes_read;
     int conf_blocks_length;
     int reads_modified_by_vars = 0;
@@ -371,10 +374,10 @@ int main(int argc, char *argv[]) {
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx]);
                         // add variant blocks
-                        ptBlock_add_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                        ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
                                                      alignments[primary_idx]->contig,
                                                      variant_blocks_all_haps[primary_idx]);
-                        ptBlock_add_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                        ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
                                                      alignments[best_idx]->contig,
                                                      variant_blocks_all_haps[best_idx]);
                         reads_modified_by_vars += 1;
@@ -425,11 +428,11 @@ int main(int argc, char *argv[]) {
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx]);
                         ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
                         // add marker blocks
-                        ptMarker_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                        ptMarker_add_marker_blocks_by_contig(marker_blocks_all_haps_per_contig,
                                                              alignments[primary_idx]->contig,
                                                              primary_idx,
                                                              markers);
-                        ptMarker_add_marker_blocks_by_contig(variant_and_marker_blocks_all_haps_per_contig,
+                        ptMarker_add_marker_blocks_by_contig(marker_blocks_all_haps_per_contig,
                                                              alignments[best_idx]->contig,
                                                              best_idx,
                                                              markers);
@@ -462,21 +465,27 @@ int main(int argc, char *argv[]) {
             reads_modified_by_marker);
 
 
-    // merge blocks and save in a bed file
-    char bed_path_modified_blocks[200];
+    // save the read blocks modified by markers and variants
+    char bed_path[200];
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
+    snprintf(bed_path, 200, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants",
-                          bed_path_modified_blocks);
+                          bed_path);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
+    snprintf(bed_path, 200, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
-                          bed_path_modified_blocks);
+                          bed_path);
 
-    snprintf(bed_path_modified_blocks, 200, "%s/%s.variant_and_marker_blocks.bed", dirPath, prefix);
-    merge_and_save_blocks(variant_and_marker_blocks_all_haps_per_contig,
-                          "projected variant/marker blocks on all haplotypes",
-                          bed_path_modified_blocks);
+    // save the variant and marker blocks
+    snprintf(bed_path, 200, "%s/%s.variant_blocks.bed", dirPath, prefix);
+    merge_and_save_blocks(variant_blocks_all_haps_per_contig,
+                          "projected variant blocks on all haplotypes",
+                          bed_path);
+
+    snprintf(bed_path, 200, "%s/%s.marker_blocks.bed", dirPath, prefix);
+    merge_and_save_blocks(marker_blocks_all_haps_per_contig,
+                          "projected marker blocks on all haplotypes",
+                          bed_path);
 
 
     // free memory
@@ -488,5 +497,7 @@ int main(int argc, char *argv[]) {
     stHash_destruct(variant_ref_blocks_per_contig);
     stHash_destruct(modified_blocks_by_marker_per_contig);
     stHash_destruct(modified_blocks_by_vars_per_contig);
+    stHash_destruct(marker_blocks_all_haps_per_contig);
+    stHash_destruct(variant_blocks_all_haps_per_contig);
 }
 //main();
