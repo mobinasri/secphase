@@ -85,7 +85,7 @@ task secphase {
         String prefix = "secphase"
         Boolean debugMode = false
         # runtime configurations
-        Int memSize=32
+        Int memSize=8
         Int threadCount=4
         Int diskSize=128
         String dockerImage="mobinasri/secphase:v0.2.0"
