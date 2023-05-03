@@ -741,6 +741,7 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
             }
         }
     }
+    ptCigarIt_destruct(cigar_it);
     return edit_distance;
 }
 
