@@ -121,7 +121,10 @@ task secphase {
 
         mkdir output
         if [[ -n "~{phasedVcf}" ]];then
-            secphase ~{options} -v ~{phasedVcf} -B ~{variantBed} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+            ln ~{phasedVcf} phased.vcf
+            ln ~{variantBed} variant.bed
+            echo "Running variant/marker dual mode"
+            secphase ~{options} -v phased.vcf -B variant.bed -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         else
             secphase ~{options} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         fi
