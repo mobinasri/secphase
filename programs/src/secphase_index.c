@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
             step_log_index += 1;
         }
     }
-    // make sure ot save the last address in the file
+    // make sure to save the last address in the file
     if (count_parsed_reads >=  (step_index - 1) * step_size) {
         if (addresses_size == addresses_number) addresses_size += 1;
         addresses = realloc(addresses, addresses_size * sizeof(int64_t));
