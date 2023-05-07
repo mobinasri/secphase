@@ -72,6 +72,9 @@ int main(int argc, char *argv[]) {
     int64_t addresses_size = 100000;
     int64_t addresses_number = 0;
     int64_t* addresses = malloc(addresses_size * sizeof(int64_t));
+    // save the address of the first alignment
+    addresses[addresses_number] = bgzf_tell(fp->fp.bgzf);
+    addresses_number += 1;
     int bytes_read;
     while (true) {
         bytes_read = sam_read1(fp, sam_hdr, b);
