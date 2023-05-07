@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
                 strcpy(read_name, read_name_new);
             }
         }
-	if (bytes_read <= -1) break; // file is finished so break
+	    if (bytes_read <= -1) break; // file is finished so break
         // If read name has changed or file is finished
         if ((strcmp(read_name_new, read_name) != 0) || (bytes_read <= -1)) {
             count_parsed_reads += 1;
