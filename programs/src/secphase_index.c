@@ -101,6 +101,13 @@ int main(int argc, char *argv[]) {
             step_log_index += 1;
         }
     }
+    // make sure ot save the last address in the file
+    if (count_parsed_reads >=  (step_index - 1) * step_size) {
+        if (addresses_size == addresses_number) addresses_size += 1;
+        addresses = realloc(addresses, addresses_size * sizeof(int64_t));
+        addresses[addresses_number] = bgzf_tell(fp->fp.bgzf);
+        addresses_number += 1;
+    }
     fprintf(stderr, "[%s] # Total parsed reads = %d\n", get_timestamp(), count_parsed_reads);
     char index_path[200];
     snprintf(index_path, 200, "%s.secphase.index", inputPath);
