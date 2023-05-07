@@ -214,7 +214,7 @@ stList *read_phased_variants(char *vcf_path, bool consistent_gt, int min_gq) {
         int8_t gq = fmt_gq->p[0];
 
         // check genotype quality
-        if(gq < min_gq) continue;
+        if (gq < min_gq) continue;
 
         // get phase block id
         bcf_fmt_t *fmt_ps = bcf_get_fmt(hdr, rec, "PS");
@@ -399,8 +399,8 @@ stHash *extract_variant_ref_blocks(stList *variants, const faidx_t *fai, int min
 
 
 char *fetch_read_seq(ptAlignment *alignment, ptBlock *block) {
-    if(block->sqe < block->sqs){
-        char* empty_seq = malloc(sizeof(char));
+    if (block->sqe < block->sqs) {
+        char *empty_seq = malloc(sizeof(char));
         empty_seq[0] = '\0';
         return empty_seq;
     }
@@ -419,8 +419,8 @@ char *fetch_read_seq(ptAlignment *alignment, ptBlock *block) {
 
 
 char *fetch_corrected_ref_seq(const faidx_t *fai, ptBlock *block, char *contig_name) {
-    if(block->rfe < block->rfs){
-        char* empty_seq = malloc(sizeof(char));
+    if (block->rfe < block->rfs) {
+        char *empty_seq = malloc(sizeof(char));
         empty_seq[0] = '\0';
         return empty_seq;
     }
@@ -638,8 +638,7 @@ int get_edit_distance(ptAlignment *alignment, faidx_t *fai, ptBlock *block) {
         edit_distance = result.editDistance;
         //printf("edit=%d\n\n", edit_distance);
         edlibFreeAlignResult(result);
-    }
-    else{
+    } else {
         // at least one of read_seq and corrected_ref_seq is '\0'
         edit_distance = max(strlen(read_seq), strlen(corrected_ref_seq));
     }
@@ -762,7 +761,8 @@ int get_total_edit_distance(ptAlignment *alignment, const faidx_t *fai, char *co
 }
 
 
-stHash *ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin, int min_gq) {
+stHash *
+ptVariant_parse_variants_and_extract_blocks(char *vcf_path, char *bed_path, faidx_t *fai, int min_margin, int min_gq) {
     stList *phased_variants = read_phased_variants(vcf_path, true, min_gq);
     fprintf(stdout, "[%s] Number of parsed phased variants = %d\n", get_timestamp(), stList_length(phased_variants));
 
@@ -898,7 +898,8 @@ set_scores_as_edit_distances(stList *read_blocks_merged, ptAlignment **alignment
         projected_blocks_per_alignment_idx[i] = stList_construct3(0, ptBlock_destruct);
         alignments[i]->score =
                 -1 *
-                get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged, projected_blocks_per_alignment_idx[i]);
+                get_total_edit_distance(alignments[i], fai, alignments[i]->contig, read_blocks_merged,
+                                        projected_blocks_per_alignment_idx[i]);
     }
     return projected_blocks_per_alignment_idx;
 }
@@ -986,4 +987,17 @@ stList *ptVariant_subset_stList(stList *variants, stHash *blocks_per_contig) {
         }
     }
     return subset_variants;
+}
+
+stHash *ptVariant_copy_stHash_blocks_per_contig(stHash *blocks_per_contig) {
+    stHash *copy_blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                       (void (*)(void *)) stList_destruct);
+    stList *blocks;
+    char *contig_name;
+    stHashIterator *it = stHash_getIterator(blocks_per_contig);
+    while ((contig_name = stHash_getNext(it)) != NULL) {
+        blocks = stHash_search(blocks_per_contig, contig_name);
+        stHash_insert(copy_blocks_per_contig, contig_name, ptBlock_copy_stList(blocks));
+    }
+    return copy_blocks_per_contig;
 }
