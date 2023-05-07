@@ -360,3 +360,13 @@ void ptBlock_add_blocks_by_contig(stHash *blocks_per_contig, char* contig, stLis
         stList_append(blocks, ptBlock_copy(stList_get(blocks_to_add,i)));
     }
 }
+
+stList* ptBlock_copy_stList(stList* blocks) {
+    stList *copy_blocks = stList_construct3(0, ptBlock_destruct);
+    for (int i = 0; i < stList_length(blocks); i++) {
+        block = stList_get(blocks, i);
+        stList_append(copy_blocks, ptBlock_copy(block));
+    }
+    return copy_blocks;
+}
+
