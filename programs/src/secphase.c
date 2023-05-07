@@ -110,15 +110,15 @@ int main(int argc, char *argv[]) {
     double conf_d = 1e-4;
     double conf_e = 0.1;
     double conf_b = 20;
-    char inputPath[200];
-    char fastaPath[200];
-    char variantBedPath[200];
+    char inputPath[1000];
+    char fastaPath[1000];
+    char variantBedPath[1000];
     variantBedPath[0] = NULL;
-    char vcfPath[200];
+    char vcfPath[1000];
     vcfPath[0] = NULL;
-    char prefix[200];
+    char prefix[1000];
     strcpy(prefix, "secphase");
-    char dirPath[200];
+    char dirPath[1000];
     strcpy(dirPath, "secphase_out_dir");
     char *program;
     bool preset_ont = false;
@@ -277,8 +277,8 @@ int main(int argc, char *argv[]) {
     faidx_t *fai = fai_load(fastaPath);
 
     stHash *variant_ref_blocks_per_contig;
-    char bed_path_ref_blocks[200];
-    snprintf(bed_path_ref_blocks, 200, "%s/%s.initial_variant_blocks.bed", dirPath, prefix);
+    char bed_path_ref_blocks[1000];
+    snprintf(bed_path_ref_blocks, 1000, "%s/%s.initial_variant_blocks.bed", dirPath, prefix);
     if (vcfPath != NULL && vcfPath[0] != NULL) {
         variant_ref_blocks_per_contig = ptVariant_parse_variants_and_extract_blocks(vcfPath, variantBedPath,
                                                                                     fai,
@@ -299,8 +299,8 @@ int main(int argc, char *argv[]) {
     }
 
     // open file for saving reads that have to be corrected
-    char output_log_path[200];
-    snprintf(output_log_path, 200, "%s/%s.out.log", dirPath, prefix);
+    char output_log_path[1000];
+    snprintf(output_log_path, 1000, "%s/%s.out.log", dirPath, prefix);
     FILE *output_log_file = fopen(output_log_path, "w+");
     // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
@@ -328,8 +328,13 @@ int main(int argc, char *argv[]) {
     int conf_blocks_length;
     int reads_modified_by_vars = 0;
     int reads_modified_by_marker = 0;
+    int count_parsed_alignments = 0;
+    int count_parsed_reads = 0;
+    int alignment_log_idx = 1;
+    int alignment_log_size = 10000;
     while (true) {
         bytes_read = sam_read1(fp, sam_hdr, b);
+        count_parsed_alignments += 1;
         if (bytes_read > -1) {
             strcpy(read_name_new, bam_get_qname(b));
             if (read_name[0] == '\0') {
@@ -338,6 +343,7 @@ int main(int argc, char *argv[]) {
         }
         // If read name has changed or file is finished
         if ((strcmp(read_name_new, read_name) != 0) || (bytes_read <= -1)) {
+            count_parsed_reads += 1;
             // Check if we have more than one alignment
             // and also not too many (more than 10) alignments
             // Secphase currently does not support supplementary alignments
@@ -451,6 +457,15 @@ int main(int argc, char *argv[]) {
             // initialize for new alignments
             alignments_len = 0;
         }
+        if (count_parsed_alignments >= alignment_log_idx * alignment_log_size){
+            alignment_log_idx += 1;
+            fprintf(stderr, "[%s] #parsed alignments = %d, #parsed reads = %d, #modifed by phased variants = %d, #modifed_by_markers = %d\n",
+                    get_timestamp(),
+                    count_parsed_alignments,
+                    count_parsed_reads,
+                    reads_modified_by_vars,
+                    reads_modified_by_marker);
+        }
         if (bytes_read <= -1) break; // file is finished so break
         if (b->core.flag & BAM_FUNMAP) continue; // unmapped
         if (alignments_len > 10) continue;
@@ -466,23 +481,23 @@ int main(int argc, char *argv[]) {
 
 
     // save the read blocks modified by markers and variants
-    char bed_path[200];
+    char bed_path[1000];
 
-    snprintf(bed_path, 200, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
+    snprintf(bed_path, 1000, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants",
                           bed_path);
 
-    snprintf(bed_path, 200, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
+    snprintf(bed_path, 1000, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
                           bed_path);
 
     // save the variant and marker blocks
-    snprintf(bed_path, 200, "%s/%s.variant_blocks.bed", dirPath, prefix);
+    snprintf(bed_path, 1000, "%s/%s.variant_blocks.bed", dirPath, prefix);
     merge_and_save_blocks(variant_blocks_all_haps_per_contig,
                           "projected variant blocks on all haplotypes",
                           bed_path);
 
-    snprintf(bed_path, 200, "%s/%s.marker_blocks.bed", dirPath, prefix);
+    snprintf(bed_path, 1000, "%s/%s.marker_blocks.bed", dirPath, prefix);
     merge_and_save_blocks(marker_blocks_all_haps_per_contig,
                           "projected marker blocks on all haplotypes",
                           bed_path);
