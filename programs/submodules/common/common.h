@@ -33,6 +33,9 @@ typedef struct Splitter{
 	char delimiter;
 } Splitter;
 
+
+bool file_exists (char *filename);
+
 char* get_timestamp();
 
 char* copyString(char* str);
