@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
         }
         if (count_parsed_reads == step_index * step_size) {
             if (addresses_size == addresses_number) addresses_size *= 2;
-            addresses = realloc(addresses_size * sizeof(int64_t));
+            addresses = realloc(addresses, addresses_size * sizeof(int64_t));
             addresses[addresses_number] = bgzf_tell(fp->fp.bgzf);
             addresses_number += 1;
             step_index += 1;
