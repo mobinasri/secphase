@@ -34,7 +34,7 @@ static struct option long_options[] =
 
 int main(int argc, char *argv[]) {
     int c;
-    int stepSize = 10;
+    int step_size = 10;
     char inputPath[200];
     char *program;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
                 strcpy(inputPath, optarg);
                 break;
             case 's':
-                stepSize = atoi(optarg);
+                step_size = atoi(optarg);
                 break;
             default:
                 if (c != 'h') fprintf(stderr, "[E::%s] undefined option %c\n", __func__, c);
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
         }
     }
     int64_t step_log_index = 1;
-    int64_t step_log_size = 10000;
+    int64_t step_log_size = 100000;
 
     // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
                 strcpy(read_name, read_name_new);
             }
         }
+	if (bytes_read <= -1) break; // file is finished so break
         // If read name has changed or file is finished
         if ((strcmp(read_name_new, read_name) != 0) || (bytes_read <= -1)) {
             count_parsed_reads += 1;
@@ -93,12 +94,14 @@ int main(int argc, char *argv[]) {
             step_index += 1;
         }
         if (count_parsed_reads == step_log_index * step_log_size) {
-            fprintf(stderr, "[%s] #parsed reads = %d\n", get_timestamp(), count_parsed_reads);
+            fprintf(stderr, "[%s] # Parsed reads = %d\n", get_timestamp(), count_parsed_reads);
             step_log_index += 1;
         }
     }
+    fprintf(stderr, "[%s] # Total parsed reads = %d\n", get_timestamp(), count_parsed_reads);
     char index_path[200];
     snprintf(index_path, 200, "%s.secphase.index", inputPath);
+    fprintf(stderr, "[%s] Writing index file %s\n", get_timestamp(), index_path);
     FILE *index_fp = fopen(index_path,"wb");
     // the first 8 bytes is the number of addresses in this index file
     fwrite(&addresses_number, sizeof(int64_t), 1, index_fp);
@@ -108,4 +111,5 @@ int main(int argc, char *argv[]) {
     sam_close(fp);
     bam_destroy1(b);
     fclose(index_fp);
+    fprintf(stderr, "[%s] Done!\n", get_timestamp());
 }
