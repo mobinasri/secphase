@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include "sam.h"
+#include "bgzf.h"
 #include "faidx.h"
 #include <time.h>
 #include "bgzf.h"
