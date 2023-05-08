@@ -1,84 +1,40 @@
-version 1.0 
+version 1.0
 
-workflow runSecPhase{
+workflow runSecPhase {
     input {
         File inputBam
         File diploidAssemblyFastaGz
         File? phasedVcf
         File? variantBed
         String secphaseOptions = "--hifi"
-        String secphaseDockerImage = "mobinasri/secphase:v0.3.0"
-        String version = "v0.3.0"
-        Boolean debugMode = false
+        String secphaseDockerImage = "mobinasri/secphase:v0.4.0-alpha"
+        String version = "v0.4.0_alpha"
     }
-    call sortByName{
-         input:
-             bamFile = inputBam,
-             diskSize = 7 * ceil(size(inputBam, "GB")) + 64
+    call sortByName {
+        input:
+            bamFile = inputBam,
+            diskSize = 7 * ceil(size(inputBam, "GB")) + 64
     }
-    call splitByName{
-         input:
-             bamFile = sortByName.outputBam,
-             diskSize = 2 * ceil(size(sortByName.outputBam, "GB")) + 64
-    }
-    scatter (splitBam in splitByName.splitBams) { 
-        call secphase{
-            input:
-                bamFile = splitBam,
-                diploidAssemblyFastaGz = diploidAssemblyFastaGz,
-                phasedVcf = phasedVcf,
-                variantBed = variantBed,
-                debugMode = debugMode,
-                options = secphaseOptions,
-                dockerImage = secphaseDockerImage,
-                diskSize = ceil(size(splitBam, "GB")) + 64
-        }
+    call secphase {
+        input:
+            bamFile = sortByName.outputBam,
+            diploidAssemblyFastaGz = diploidAssemblyFastaGz,
+            phasedVcf = phasedVcf,
+            variantBed = variantBed,
+            options = secphaseOptions,
+            dockerImage = secphaseDockerImage,
+            prefix = "secphase_${version}",
+            diskSize = ceil(size(sortByName.outputBam, "GB")) + 64
     }
 
-    call concatLogs as concatOutLogs{
-        input:
-            logs = secphase.outLog,
-            filename = basename("${inputBam}", ".bam") + "secphase_${version}.phasing_out"
-    }
-    
-    call mergeBeds as mergeVariantBlocks{
-        input:
-            beds = secphase.variantBlocksBed,
-            filename = basename("${inputBam}", ".bam") + "secphase_${version}.variant_blocks.bed"
-    }
+    output {
+        File outLog = secphase.outLog
+        File variantBlocksBed = secphase.variantBlocksBed
+        File markerBlocksBed = secphase.markerBlocksBed
+        File modifiedReadBlocksVariantsBed = secphase.modifiedReadBlocksVariantsBed
+        File modifiedReadBlocksMarkersBed = secphase.modifiedReadBlocksMarkersBed
+        File initalVariantBlocksBed = secphase.initalVariantBlocksBed
 
-    call mergeBeds as mergeMarkerBlocks{
-        input:
-            beds = secphase.markerBlocksBed,
-            filename = basename("${inputBam}", ".bam") + "secphase_${version}.marker_blocks.bed"
-    }
-
-    call mergeBeds as mergeModifiedReadBlocksVariants{
-        input:
-            beds = secphase.modifiedReadBlocksVariantsBed,
-            filename = basename("${inputBam}", ".bam") + "secphase_${version}.modified_read_blocks.variants.bed"
-    }
-   
-    call mergeBeds as mergeModifiedReadBlocksMarkers{
-        input:
-            beds = secphase.modifiedReadBlocksMarkersBed,
-            filename = basename("${inputBam}", ".bam") + "secphase_${version}.modified_read_blocks.markers.bed"
-    }
-    
-    call mergeBeds as mergeInitialVariantBlocks{
-        input:
-            beds = secphase.initalVariantBlocksBed,
-            filename = basename("${inputBam}", ".bam") + "secphase_${version}.initial_variant_blocks.bed"
-    }
-
-    output{
-        File outLog = concatOutLogs.log
-        File variantBlocksBed = mergeVariantBlocks.mergedBed
-        File markerBlocksBed = mergeMarkerBlocks.mergedBed
-        File modifiedReadBlocksVariantsBed = mergeModifiedReadBlocksVariants.mergedBed
-        File modifiedReadBlocksMarkersBed = mergeModifiedReadBlocksMarkers.mergedBed
-        File initalVariantBlocksBed = mergeInitialVariantBlocks.mergedBed
-        
     }
 }
 
@@ -90,12 +46,11 @@ task secphase {
         File? variantBed
         String options = "--hifi"
         String prefix = "secphase"
-        Boolean debugMode = false
         # runtime configurations
-        Int memSize=8
-        Int threadCount=4
+        Int memSize=48
+        Int threadCount=64
         Int diskSize=128
-        String dockerImage="mobinasri/secphase:v0.3.0"
+        String dockerImage="mobinasri/secphase:v0.4.0-alpha"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -119,14 +74,16 @@ task secphase {
         gunzip -c asm.fa.gz > asm.fa
         samtools faidx asm.fa
 
+        secphase_index -i alignment.bam
+
         mkdir output
         if [[ -n "~{phasedVcf}" ]];then
-            ln ~{phasedVcf} phased.vcf
-            ln ~{variantBed} variant.bed
-            echo "Running variant/marker dual mode"
-            secphase ~{options} -v phased.vcf -B variant.bed -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+        ln ~{phasedVcf} phased.vcf
+        ln ~{variantBed} variant.bed
+        echo "Running variant/marker dual mode"
+        secphase ~{options} -@~{threadCount} -v phased.vcf -B variant.bed -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         else
-            secphase ~{options} -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+        secphase ~{options} -@~{threadCount}  -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
         fi
     >>>
     runtime {
@@ -187,7 +144,6 @@ task concatLogs {
     }
 }
 
-
 task mergeBeds {
     input {
         Array[File] beds
@@ -227,7 +183,6 @@ task mergeBeds {
         File mergedBed = glob("output/*.bed")[0]
     }
 }
-
 
 task splitByName {
     input {
@@ -272,7 +227,6 @@ task splitByName {
     }
 }
 
-
 task sortByName {
     input {
         File bamFile
@@ -296,20 +250,20 @@ task sortByName {
         # echo each line of the script to stdout so we can see what is happening
         # to turn off echo do 'set +o xtrace'
         set -o xtrace
-        
+
         BAM_FILENAME=$(basename ~{bamFile})
         BAM_PREFIX=${BAM_FILENAME%.bam}
-       
+
         mkdir output
         if [ ~{excludeSingleAlignment} == "yes" ]; then
-            samtools view ~{bamFile} | cut -f1 | sort | uniq -c > readnames.txt
-            cat readnames.txt | awk '$1 > 1' | tr -s ' ' | cut -d ' ' -f3 > selected_readnames.txt
-            extract_reads -i ~{bamFile} -o output/${BAM_PREFIX}.bam -r selected_readnames.txt
+        samtools view ~{bamFile} | cut -f1 | sort | uniq -c > readnames.txt
+        cat readnames.txt | awk '$1 > 1' | tr -s ' ' | cut -d ' ' -f3 > selected_readnames.txt
+        extract_reads -i ~{bamFile} -o output/${BAM_PREFIX}.bam -r selected_readnames.txt
         else
-            ln ~{bamFile} output/${BAM_PREFIX}.bam
+        ln ~{bamFile} output/${BAM_PREFIX}.bam
         fi
         samtools sort -n -@8 output/${BAM_PREFIX}.bam > output/${BAM_PREFIX}.sorted_by_qname.bam
-    >>> 
+    >>>
     runtime {
         docker: dockerImage
         memory: memSize + " GB"
