@@ -15,9 +15,17 @@ workflow runSecPhase {
             bamFile = inputBam,
             diskSize = 7 * ceil(size(inputBam, "GB")) + 64
     }
+    call secphaseIndex {
+        input:
+            bam = sortByName.outputBam,
+            dockerImage = secphaseDockerImage,
+            diskSize = ceil(size(sortByName.outputBam, "GB")) + 64
+    }
+
     call secphase {
         input:
-            bamFile = sortByName.outputBam,
+            bam = sortByName.outputBam,
+            bamSecphaseIndex = secphaseIndex.bamSecphaseIndex,
             diploidAssemblyFastaGz = diploidAssemblyFastaGz,
             phasedVcf = phasedVcf,
             variantBed = variantBed,
@@ -38,17 +46,12 @@ workflow runSecPhase {
     }
 }
 
-task secphase {
+task secphaseIndex {
     input {
-        File bamFile
-        File diploidAssemblyFastaGz
-        File? phasedVcf
-        File? variantBed
-        String options = "--hifi"
-        String prefix = "secphase"
+        File bam
         # runtime configurations
-        Int memSize=48
-        Int threadCount=64
+        Int memSize=8
+        Int threadCount=4
         Int diskSize=128
         String dockerImage="mobinasri/secphase:v0.4.0-alpha"
         Int preemptible=2
@@ -66,24 +69,75 @@ task secphase {
         # to turn off echo do 'set +o xtrace'
         ##set -o xtrace
 
-        BAM_FILENAME=$(basename ~{bamFile})
+        BAM_FILENAME=$(basename ~{bam})
         BAM_PREFIX=${BAM_FILENAME%.bam}
 
-        ln ~{bamFile} alignment.bam
+        ln ~{bam} ${BAM_PREFIX}.bam
+
+        secphase_index -i ${BAM_PREFIX}.bam
+    >>>
+    runtime {
+        docker: dockerImage
+        memory: memSize + " GB"
+        cpu: threadCount
+        disks: "local-disk " + diskSize + " SSD"
+        preemptible : preemptible
+        zones : zones
+    }
+    output {
+        File bamSecphaseIndex = glob("*.bam.secphase.index")[0]
+    }
+}
+
+
+task secphase {
+    input {
+        File bam
+        File bamSecphaseIndex
+        File diploidAssemblyFastaGz
+        File? phasedVcf
+        File? variantBed
+        String options = "--hifi"
+        String prefix = "secphase"
+        # runtime configurations
+        Int memSize=32
+        Int threadCount=32
+        Int diskSize=128
+        String dockerImage="mobinasri/secphase:v0.4.0-alpha"
+        Int preemptible=2
+        String zones="us-west2-a"
+    }
+    command <<<
+        # Set the exit code of a pipeline to that of the rightmost command
+        # to exit with a non-zero status, or zero if all commands of the pipeline exit
+        ##set -o pipefail
+        # cause a bash script to exit immediately when a command fails
+        ##set -e
+        # cause the bash shell to treat unset variables as an error and exit immediately
+        ##set -u
+        # echo each line of the script to stdout so we can see what is happening
+        # to turn off echo do 'set +o xtrace'
+        ##set -o xtrace
+
+        BAM_FILENAME=$(basename ~{bam})
+        BAM_PREFIX=${BAM_FILENAME%.bam}
+
+        ln ~{bam} ${BAM_PREFIX}.bam
+        ln ~{bamSecphaseIndex} ${BAM_PREFIX}.bam.secphase.index
+
         ln ~{diploidAssemblyFastaGz} asm.fa.gz
         gunzip -c asm.fa.gz > asm.fa
         samtools faidx asm.fa
 
-        secphase_index -i alignment.bam
-
         mkdir output
         if [[ -n "~{phasedVcf}" ]];then
-        ln ~{phasedVcf} phased.vcf
-        ln ~{variantBed} variant.bed
-        echo "Running variant/marker dual mode"
-        secphase ~{options} -@~{threadCount} -v phased.vcf -B variant.bed -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+            ln ~{phasedVcf} phased.vcf
+            ln ~{variantBed} variant.bed
+            echo "Running variant/marker dual mode"
+            secphase ~{options} -@~{threadCount}  -i ${BAM_PREFIX}.bam -f asm.fa --outDir output --prefix ~{prefix} -v phased.vcf -B variant.bed
         else
-        secphase ~{options} -@~{threadCount}  -i alignment.bam -f asm.fa --outDir output --prefix ~{prefix}
+            echo "Running marker mode"
+            secphase ~{options} -@~{threadCount}  -i ${BAM_PREFIX}.bam -f asm.fa --outDir output --prefix ~{prefix}
         fi
     >>>
     runtime {
