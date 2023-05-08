@@ -86,8 +86,6 @@ void *runOneThread(void *arg_) {
     double prim_margin_score = arg->prim_margin_score;
     double prim_margin_random = arg->prim_margin_random;
     int set_q = arg->set_q;
-    int min_var_margin = arg->min_var_margin;
-    int min_gq = arg->min_gq;
     double conf_d = arg->conf_d;
     double conf_e = arg->conf_e;
     double conf_b = arg->conf_b;
@@ -104,7 +102,9 @@ void *runOneThread(void *arg_) {
     stHash *variant_blocks_all_haps_per_contig = arg->variant_blocks_all_haps_per_contig;
     stHash *marker_blocks_all_haps_per_contig = arg->marker_blocks_all_haps_per_contig;
     pthread_mutex_t *mutexPtr = arg->mutexPtr;
+    FILE *output_log_file = arg->output_log_file;
 
+    faidx_t *fai = fai_load(fastaPath);
     // open input sam/bam file for parsing alignment records
     samFile *fp = sam_open(inputPath, "r");
     sam_hdr_t *sam_hdr = sam_hdr_read(fp);
@@ -122,7 +122,12 @@ void *runOneThread(void *arg_) {
     int count_parsed_alignments = 0;
     int count_parsed_reads = 0;
     int alignment_log_idx = 1;
-    int alignment_log_size = 10000;
+    int alignment_log_size = 100000;
+
+    //lock mutex
+    pthread_mutex_lock(mutexPtr);
+    fprintf(stderr,"[%s] [thread index = %d] Started parsing alignments\n", get_timestamp(), thread_idx);
+    pthread_mutex_unlock(mutexPtr);
     while (true) {
         bytes_read = sam_read1(fp, sam_hdr, b);
         count_parsed_alignments += 1;
@@ -266,14 +271,14 @@ void *runOneThread(void *arg_) {
                     thread_idx,
                     count_parsed_alignments,
                     count_parsed_reads,
-                    reads_modified_by_vars,
-                    reads_modified_by_marker);
+                    *reads_modified_by_vars,
+                    *reads_modified_by_marker);
             fflush(stderr);
             //lock mutex
             pthread_mutex_unlock(mutexPtr);
         }
         if (bytes_read <= -1) break; // file is finished so break
-        if (fp->fp.bgzf == bam_adr_end) break; // this thread is done for its allocated part of the part so break
+        if (bgzf_tell(fp->fp.bgzf) == bam_adr_end) break; // this thread is done for its allocated part of the part so break
         if (b->core.flag & BAM_FUNMAP) continue; // unmapped
         if (alignments_len > 10) continue;
         alignments[alignments_len] = ptAlignment_construct(b, sam_hdr);
@@ -608,7 +613,7 @@ int main(int argc, char *argv[]) {
                                       &reads_modified_by_marker,
                                       output_log_file,
                                       mutexPtr);
-        tpool_add_work(tm, readOneThread, arg);
+        tpool_add_work(tm, runOneThread, arg);
     }
     tpool_wait(tm);
     tpool_destroy(tm);

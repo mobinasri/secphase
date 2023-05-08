@@ -39,6 +39,7 @@ typedef struct work_arg_t {
     char inputPath[1000];
     char fastaPath[1000];
     bool marker_mode;
+    stHash *variant_ref_blocks_per_contig;
     stHash *modified_blocks_by_vars_per_contig;
     stHash *modified_blocks_by_marker_per_contig;
     stHash *variant_blocks_all_haps_per_contig;

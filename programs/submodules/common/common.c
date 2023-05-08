@@ -1,4 +1,7 @@
 #include "common.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <stdbool.h>
 
 
 bool file_exists (char *filename) {

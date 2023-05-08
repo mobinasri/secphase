@@ -27,6 +27,7 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
     arg->indel_threshold = indel_threshold;
     arg->min_q = min_q;
     arg->min_score = min_score;
+    arg->prim_margin_score = prim_margin_score;
     arg->prim_margin_random = prim_margin_random;
     arg->set_q = set_q;
     arg->conf_d = conf_d;
@@ -35,7 +36,7 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
     strcpy(arg->inputPath, inputPath);
     strcpy(arg->fastaPath, fastaPath);
     arg->marker_mode = marker_mode;
-    arg->variant_blocks_all_haps_per_contig = variant_blocks_all_haps_per_contig;
+    arg->variant_ref_blocks_per_contig =variant_ref_blocks_per_contig;
     arg->modified_blocks_by_vars_per_contig = modified_blocks_by_vars_per_contig;
     arg->modified_blocks_by_marker_per_contig = modified_blocks_by_marker_per_contig;
     arg->variant_blocks_all_haps_per_contig = variant_blocks_all_haps_per_contig;
