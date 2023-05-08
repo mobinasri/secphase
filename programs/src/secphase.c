@@ -122,7 +122,7 @@ void *runOneThread(void *arg_) {
     int count_parsed_alignments = 0;
     int count_parsed_reads = 0;
     int alignment_log_idx = 1;
-    int alignment_log_size = 100000;
+    int alignment_log_size = 20000;
 
     //lock mutex
     pthread_mutex_lock(mutexPtr);
