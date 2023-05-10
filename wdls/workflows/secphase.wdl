@@ -213,7 +213,7 @@ task concatLogs {
         Int memSize=2
         Int threadCount=1
         Int diskSize=32
-        String dockerImage="mobinasri/secphase:v0.3.0"
+        String dockerImage="mobinasri/secphase:v0.4.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -253,7 +253,7 @@ task mergeBeds {
         Int memSize=2
         Int threadCount=1
         Int diskSize=32
-        String dockerImage="mobinasri/secphase:v0.3.0"
+        String dockerImage="mobinasri/secphase:v0.4.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -293,7 +293,7 @@ task splitByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=512
-        String dockerImage="mobinasri/secphase:v0.3.0"
+        String dockerImage="mobinasri/secphase:v0.4.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -336,7 +336,7 @@ task sortByName {
         Int memSize=16
         Int threadCount=8
         Int diskSize=1024
-        String dockerImage="mobinasri/secphase:v0.3.0"
+        String dockerImage="mobinasri/secphase:v0.4.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
@@ -385,7 +385,7 @@ task sortByContig {
         Int memSize=8
         Int threadCount=4
         Int diskSize=128
-        String dockerImage="mobinasri/secphase:v0.3.0"
+        String dockerImage="mobinasri/secphase:v0.4.0"
         Int preemptible=2
         String zones="us-west2-a"
     }
