@@ -62,7 +62,7 @@ Two heuristics are applied for increasing specificity:
 
 ### Running Secphase in marker mode
 
-To run Secphase it is recommended to use the docker image `mobinasri/secphase:v0.4.0`.
+To run Secphase it is recommended to use the docker image `mobinasri/secphase:v0.4.1`.
 
 Here are the parameters `secphase` can accept:
 ```
@@ -108,7 +108,7 @@ samtools sort -n -@8 ${INPUT_DIR}/${BAM_PREFIX}.bam > ${INPUT_DIR}/${BAM_PREFIX}
 ## Create secphase index
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
-	mobinasri/secphase:v0.4.0 \
+	mobinasri/secphase:v0.4.1 \
 	secphase_index \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam
 
@@ -116,7 +116,7 @@ docker run \
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
 	-v ${OUTPUT_DIR}:${OUTPUT_DIR}
-	mobinasri/secphase:v0.4.0 \
+	mobinasri/secphase:v0.4.1 \
 	secphase --hifi \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa \
@@ -128,7 +128,7 @@ docker run \
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
 	-v ${OUTPUT_DIR}:${OUTPUT_DIR}
-	mobinasri/secphase:v0.4.0 \
+	mobinasri/secphase:v0.4.1 \
 	secphase --ont \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa \
@@ -162,7 +162,7 @@ For producing a phased vcf file one approach can be aligning all HiFi reads to e
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
 	-v ${OUTPUT_DIR}:${OUTPUT_DIR}
-	mobinasri/secphase:v0.4.0 \
+	mobinasri/secphase:v0.4.1 \
 	secphase --ont \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.sorted.bam \
 	-f ${INPUT_DIR}/${FASTA_PREFIX}.fa \
@@ -175,7 +175,7 @@ docker run \
 ### Correcting bam file with secphase output
 
 To swap the pri/sec tags of the reads reported in `*.out.log` and produce a modified bam file you can run the program  `correct_bam`.
-Again it is recommended to run it using the docker image `mobinasri/secphase:v0.4.0`.
+Again it is recommended to run it using the docker image `mobinasri/secphase:v0.4.1`.
 
 Here are the parameters `correct_bam` can accept:
 ```
@@ -214,7 +214,7 @@ To produce the modified bam file: (Here the input bam file can be sorted by refe
 docker run \
 	-v ${INPUT_DIR}:${INPUT_DIR} \
 	-v ${OUTPUT_DIR}:${OUTPUT_DIR} \
-	mobinasri/secphase:v0.4.0 \
+	mobinasri/secphase:v0.4.1 \
 	correct_bam \
 	-i ${INPUT_DIR}/${BAM_PREFIX}.bam \
 	-P ${OUTPUT_DIR}/${SAMPLE_NAME}.out.log \
