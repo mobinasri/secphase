@@ -141,7 +141,7 @@ int ptBlock_cmp_sqs(const void *a, const void *b) {
 
 
 stHash *ptBlock_parse_bed(char *bed_path) {
-    FILE *fp = fopen(bed_path, "r+");
+    FILE *fp = fopen(bed_path, "r");
     size_t read;
     size_t len;
     char *line = NULL;
