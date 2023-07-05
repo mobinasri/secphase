@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include "ptVariant.h"
 #include "ptBlock.h"
+#include "sam.h"
 
 
 #ifndef __THREAD_POOL_H__
@@ -47,6 +48,7 @@ typedef struct work_arg_t {
     int *reads_modified_by_vars;
     int *reads_modified_by_marker;
     FILE *output_log_file;
+    samFile* bam_fo;
     pthread_mutex_t *mutexPtr;
 } work_arg_t;
 
@@ -76,6 +78,7 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start, int64_t
                                   int *reads_modified_by_vars,
                                   int *reads_modified_by_marker,
                                   FILE *output_log_file,
+                                  samFile* bam_fo,
                                   pthread_mutex_t *mutexPtr);
 
 tpool_t *tpool_create(size_t num);

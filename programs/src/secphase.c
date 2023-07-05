@@ -89,6 +89,7 @@ void *runOneThread(void *arg_) {
     double conf_d = arg->conf_d;
     double conf_e = arg->conf_e;
     double conf_b = arg->conf_b;
+    samFile* bam_fo = arg->bam_fo;
     char inputPath[1000];
     strcpy(inputPath, arg->inputPath);
     char fastaPath[1000];
@@ -220,6 +221,15 @@ void *runOneThread(void *arg_) {
                             calc_alignment_score(markers, alignments);
                         }
                     }
+
+                    if (bam_fo != NULL){
+                        pthread_mutex_lock(mutexPtr);
+                        for (int i = 0; i < alignments_len; i++) {
+                            sam_write1(bam_fo, sam_hdr, alignments[i]->record);
+                        }
+                        //unlock mutex
+                        pthread_mutex_unlock(mutexPtr);
+                    }
                     // get the best alignment
                     int best_idx = get_best_record_index(alignments, alignments_len, prim_margin_score, min_score,
                                                          prim_margin_random);
@@ -349,6 +359,7 @@ static struct option long_options[] =
                 {"variantBed",        required_argument, NULL, 'B'},
                 {"minGQ",             required_argument, NULL, 'G'},
                 {"threads",           required_argument, NULL, '@'},
+                {"writeBam",           no_argument, NULL, 'w'},
                 {NULL,                0,                 NULL, 0}
         };
 
@@ -382,9 +393,10 @@ int main(int argc, char *argv[]) {
     bool preset_ont = false;
     bool preset_hifi = false;
     bool marker_mode = true;
+    bool write_bam = false
     int threads = 1;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
-    while (~(c = getopt_long(argc, argv, "i:p:P:G:o:f:v:qd:e:b:n:r:m:ct:s:B:g:@:xyMh", long_options, NULL))) {
+    while (~(c = getopt_long(argc, argv, "i:p:P:G:o:f:v:qd:e:b:n:r:m:ct:s:B:g:@:wxyMh", long_options, NULL))) {
         switch (c) {
             case 'i':
                 strcpy(inputPath, optarg);
@@ -394,6 +406,9 @@ int main(int argc, char *argv[]) {
                 break;
             case '@':
                 threads = atoi(optarg);
+                break;
+            case 'w':
+                write_bam = true;
                 break;
             case 'v':
                 strcpy(vcfPath, optarg);
@@ -521,6 +536,8 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr,
                         "         --minGQ, -G         Minimum genotype quality of the phased variants [Default: 10]\n");
                 fprintf(stderr,
+                        "         --writeBam, -w         Write an output bam file with the base qualities modified by BAQ\n");
+                fprintf(stderr,
                         "         --threads, -@         Number of threads  (For using more than one threads secphase_index should be run before running secphase) [Default: 1]\n");
                 return 1;
         }
@@ -560,6 +577,26 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "[%s] Presets --hifi and --ont cannot be enabled at the same time. Select only one of them!\n",
                 get_timestamp());
         exit(EXIT_FAILURE);
+    }
+
+    samFile *fp = NULL;
+    sam_hdr_t *sam_hdr = NULL;
+    samFile *bam_fo = NULL;
+
+    if (write_bam) {
+        // read input file for getting the header
+        fp = sam_open(inputPath, "r");
+        sam_hdr = sam_hdr_read(fp);
+
+        // open a bam file for writing
+        char output_bam_path[1000];
+        snprintf(output_bam_path, 1000, "%s/%s.quality_modified.out.bam", dirPath, prefix);
+        bam_fo = sam_open(output_bam_path, "w");
+        sam_hdr_write(bam_fo, sam_hdr);
+
+        // close input bam
+        sam_hdr_destroy(sam_hdr);
+        sam_close(fp);
     }
 
     stHash *modified_blocks_by_vars_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
@@ -611,7 +648,7 @@ int main(int argc, char *argv[]) {
                                       marker_blocks_all_haps_per_contig,
                                       &reads_modified_by_vars,
                                       &reads_modified_by_marker,
-                                      output_log_file,
+                                      output_log_file, bam_fo,
                                       mutexPtr);
         tpool_add_work(tm, runOneThread, arg);
     }
@@ -658,5 +695,7 @@ int main(int argc, char *argv[]) {
     stHash_destruct(modified_blocks_by_vars_per_contig);
     stHash_destruct(marker_blocks_all_haps_per_contig);
     stHash_destruct(variant_blocks_all_haps_per_contig);
+
+    if(write_bam) sam_close(bam_fo);
 }
 //main();

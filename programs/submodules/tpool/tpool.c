@@ -19,6 +19,7 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
                                   int *reads_modified_by_vars,
                                   int *reads_modified_by_marker,
                                   FILE *output_log_file,
+                                  samFile* bam_fo,
                                   pthread_mutex_t *mutexPtr) {
     work_arg_t *arg = malloc(sizeof(work_arg_t));
     arg->thread_idx = thread_idx;
@@ -46,6 +47,7 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
     arg->reads_modified_by_vars = reads_modified_by_vars;
     arg->reads_modified_by_marker = reads_modified_by_marker;
     arg->output_log_file = output_log_file;
+    arg->bam_fo = bam_fo;
     arg->mutexPtr = mutexPtr;
     return arg;
 }
