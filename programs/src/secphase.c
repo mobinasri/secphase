@@ -393,7 +393,7 @@ int main(int argc, char *argv[]) {
     bool preset_ont = false;
     bool preset_hifi = false;
     bool marker_mode = true;
-    bool write_bam = false
+    bool write_bam = false;
     int threads = 1;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
     while (~(c = getopt_long(argc, argv, "i:p:P:G:o:f:v:qd:e:b:n:r:m:ct:s:B:g:@:wxyMh", long_options, NULL))) {
