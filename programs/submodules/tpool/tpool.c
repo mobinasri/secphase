@@ -3,6 +3,8 @@
 #include <string.h>
 #include "stdlib.h"
 
+// The tpool code is taken from
+// https://nachtimwald.com/2019/04/12/thread-pool-in-c/
 
 work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_t  bam_adr_end,
                                   bool baq_flag, bool consensus, int indel_threshold, int min_q,
@@ -208,7 +210,7 @@ void tpool_wait(tpool_t *tm) {
 
     pthread_mutex_lock(&(tm->work_mutex));
     while (1) {
-        if ((!tm->stop && tm->working_cnt != 0) || (tm->stop && tm->thread_cnt != 0)) {
+        if ((!tm->stop && (tm->working_cnt != 0 || tm->work_first != NULL)) || (tm->stop && tm->thread_cnt != 0)) {
             pthread_cond_wait(&(tm->working_cond), &(tm->work_mutex));
         } else {
             break;
