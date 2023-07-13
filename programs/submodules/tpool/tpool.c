@@ -22,7 +22,7 @@ work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src){
     strcpy(arg_dest->inputPath, arg_src->inputPath);
     strcpy(arg_dest->fastaPath, arg_src->fastaPath);
     arg_dest->marker_mode = arg_src->marker_mode;
-    arg_dest->variant_ref_blocks_per_contig = variant_ref_blocks_per_contig;
+    arg_dest->variant_ref_blocks_per_contig = arg_src->variant_ref_blocks_per_contig;
     arg_dest->modified_blocks_by_vars_per_contig = arg_src->modified_blocks_by_vars_per_contig;
     arg_dest->modified_blocks_by_marker_per_contig = arg_src->modified_blocks_by_marker_per_contig;
     arg_dest->variant_blocks_all_haps_per_contig = arg_src->variant_blocks_all_haps_per_contig;
