@@ -83,7 +83,7 @@ work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_thres
                                   samFile* bam_fo,
                                   pthread_mutex_t *mutexPtr,
                                   ptAlignment** alignments, int alignments_len,
-                                  int flank_margin);
+                                  int flank_margin, sam_hdr_t *sam_hdr);
 
 work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src);
 
