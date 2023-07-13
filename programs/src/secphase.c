@@ -102,6 +102,8 @@ void *runOneThread(void *arg_) {
 
     int alignments_len = arg->alignments_len;
     ptAlignment** alignments = arg->alignments;
+    sam_hdr_t *sam_hdr = arg->sam_hdr;
+
     int conf_blocks_length;
 
     // Check if there is any variant block encompassed by any alignment
@@ -126,7 +128,7 @@ void *runOneThread(void *arg_) {
             //lock mutex
             pthread_mutex_lock(mutexPtr);
             fprintf(output_log_file, "#EDIT DISTANCE\n");
-            fprintf(output_log_file, "$\t%s\n", read_name);
+            fprintf(output_log_file, "$\t%s\n", bam_get_qname(alignments[0]->record));
             print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_EDIT_DISTANCE,
                                    output_log_file);
             // add modified blocks
