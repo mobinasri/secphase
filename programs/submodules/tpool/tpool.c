@@ -8,9 +8,6 @@
 
 work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src){
     work_arg_t *arg_dest = malloc(sizeof(work_arg_t));
-    arg_dest->thread_idx = arg_src->thread_idx;
-    arg_dest->bam_adr_start = arg_src->bam_adr_start;
-    arg_dest->bam_adr_end = arg_src->bam_adr_end;
     arg_dest->baq_flag = arg_src->baq_flag;
     arg_dest->consensus = arg_src->consensus;
     arg_dest->indel_threshold = arg_src->indel_threshold;
