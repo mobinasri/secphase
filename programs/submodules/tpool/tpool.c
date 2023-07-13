@@ -35,7 +35,7 @@ work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src){
     arg_dest->alignments = arg_src->alignments;
     arg_dest->alignments_len = arg_src->alignments_len;
     arg_dest->flank_margin = arg_src->flank_margin;
-    return arg;
+    return arg_dest;
 }
 
 work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_threshold, int min_q,
