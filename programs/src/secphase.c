@@ -71,126 +71,6 @@ void merge_and_save_blocks(stHash *blocks_per_contig, char *info_str, char *bed_
     stHash_destruct(merged_blocks_per_contig);
 }
 
-void parseAlignmentsAndScatterJobs(void *arg_) {
-    work_arg_t *arg = arg_;
-
-    // open input sam/bam file for parsing alignment records
-    samFile *fp = sam_open(arg->inputPath, "r");
-    sam_hdr_t *sam_hdr = sam_hdr_read(fp);
-    bam1_t *b = bam_init1();
-
-    char read_name[100];
-    char read_name_new[100];
-    memset(read_name, '\0', 100);
-    memset(read_name_new, '\0', 100);
-    int alignments_len = 0;
-    ptAlignment** alignments = (ptAlignment**) malloc(11 * sizeof(ptAlignment*));
-    int bytes_read;
-    int conf_blocks_length;
-    int count_parsed_alignments = 0;
-    int count_parsed_reads = 0;
-    int alignment_log_idx = 1;
-    int alignment_log_size = 20000; // print alignment log every alignment_log_size alignments
-
-    int *reads_modified_by_vars = arg->reads_modified_by_vars;
-    int *reads_modified_by_marker = arg->reads_modified_by_marker;
-
-    // create a thread pool
-    tpool_t *tm = tpool_create(threads);
-
-    //lock mutex
-    pthread_mutex_lock(mutexPtr);
-    fprintf(stderr, "[%s] Started parsing alignments\n", get_timestamp());
-    pthread_mutex_unlock(mutexPtr);
-
-    int max_remaining_jobs = threads;
-
-    // iterate over alignments
-    while (true) {
-        bytes_read = sam_read1(fp, sam_hdr, b);
-        count_parsed_alignments += 1;
-
-        // if this is not the end of the file
-        if (bytes_read > -1) {
-            strcpy(read_name_new, bam_get_qname(b));
-            if (read_name[0] == '\0') {
-                strcpy(read_name, read_name_new);
-            }
-        }
-        // If read name has changed or file is finished
-        if ((strcmp(read_name_new, read_name) != 0) || (bytes_read <= -1)) {
-            count_parsed_reads += 1;
-            // Check if we have more than one alignment
-            // and also not too many (more than 10) alignments
-            // Secphase currently does not support supplementary alignments
-            // Only one primary alignment should exist per read
-            if ((alignments_len > 1) &&
-                (alignments_len <= 10) &&
-                (ptAlignment_supplementary_count(alignments, alignments_len) == 0) &&
-                (ptAlignment_primary_count(alignments, alignments_len) == 1)) {
-                // add alignments to the work arg
-                // these alignments will be destroyed automatically by
-                // runOnThread() at the end of the job
-                work_arg_t *arg_cp = tpool_shallow_copy_work_arg(arg);
-                arg_cp->alignments = alignments;
-                arg_cp->alignments_len = alignments_len;
-
-                // to avoid excessive memory usage limit the number
-                // of the jobs waiting in the pool thread
-                while(true){
-                    if(tm->remaining_cnt < max_remaining_jobs) break;
-                }
-                // Add a new job to the thread pool
-                tpool_add_work(tm, runOneThread, arg_cp);
-            }
-            else{
-                // if the alignments are not passed to runOneThread()
-                // they won't be freed so they have to be destroyed here
-                for (int i = 0; i < alignments_len; i++) {
-                    ptAlignment_destruct(alignments[i]);
-                    alignments[i] = NULL;
-                }
-                free(alignments);
-            }
-            // initialize for new alignments
-            alignments_len = 0;
-            alignments = (ptAlignment**) malloc(11 * sizeof(ptAlignment*));
-            // update read name
-            strcpy(read_name, read_name_new);
-        }
-        if (count_parsed_alignments >= alignment_log_idx * alignment_log_size) {
-            alignment_log_idx += 1;
-            //lock mutex
-            pthread_mutex_lock(mutexPtr);
-            fprintf(stderr,
-                    "[%s] #parsed alignments = %d, #parsed reads = %d, #modifed by phased variants = %d, #modifed by markers = %d\n",
-                    get_timestamp(),
-                    count_parsed_alignments,
-                    count_parsed_reads,
-                    *reads_modified_by_vars,
-                    *reads_modified_by_marker);
-            fflush(stderr);
-            //lock mutex
-            pthread_mutex_unlock(mutexPtr);
-        }
-        if (bytes_read <= -1) break; // file is finished so break
-        if (b->core.flag & BAM_FUNMAP) continue; // unmapped
-        if (alignments_len > 10) continue;
-        alignments[alignments_len] = ptAlignment_construct(b, sam_hdr);
-        alignments_len += 1;
-    }
-
-    // wait until all jobs are finished
-    tpool_wait(tm);
-    // destroy the thread pool
-    tpool_destroy(tm);
-
-    // free memory
-    sam_hdr_destroy(sam_hdr);
-    sam_close(fp);
-    bam_destroy1(b);
-}
-
 void *runOneThread(void *arg_) {
     // get all arguments
     work_arg_t *arg = arg_;
@@ -313,7 +193,7 @@ void *runOneThread(void *arg_) {
             //lock mutex
             pthread_mutex_lock(mutexPtr);
             fprintf(output_log_file, "#MARKER SCORE\n");
-            fprintf(output_log_file, "$\t%s\n", read_name);
+            fprintf(output_log_file, "$\t%s\n", bam_get_qname(alignments[0]->record));
             print_alignment_scores(alignments, alignments_len, best_idx, SCORE_TYPE_MARKER,
                                    output_log_file);
             // add modified blocks based on modified read coordinates
@@ -343,6 +223,131 @@ void *runOneThread(void *arg_) {
     free(alignments);
     free(arg);
 }
+
+void parseAlignmentsAndScatterJobs(void *arg_, int threads) {
+    work_arg_t *arg = arg_;
+
+    pthread_mutex_t *mutexPtr = arg->mutexPtr;
+
+    // open input sam/bam file for parsing alignment records
+    samFile *fp = sam_open(arg->inputPath, "r");
+    sam_hdr_t *sam_hdr = sam_hdr_read(fp);
+    bam1_t *b = bam_init1();
+
+    char read_name[100];
+    char read_name_new[100];
+    memset(read_name, '\0', 100);
+    memset(read_name_new, '\0', 100);
+    int alignments_len = 0;
+    ptAlignment** alignments = (ptAlignment**) malloc(11 * sizeof(ptAlignment*));
+    int bytes_read;
+    int conf_blocks_length;
+    int count_parsed_alignments = 0;
+    int count_parsed_reads = 0;
+    int alignment_log_idx = 1;
+    int alignment_log_size = 20000; // print alignment log every alignment_log_size alignments
+
+    int *reads_modified_by_vars = arg->reads_modified_by_vars;
+    int *reads_modified_by_marker = arg->reads_modified_by_marker;
+
+    // create a thread pool
+    tpool_t *tm = tpool_create(threads);
+
+    //lock mutex
+    pthread_mutex_lock(mutexPtr);
+    fprintf(stderr, "[%s] Started parsing alignments\n", get_timestamp());
+    pthread_mutex_unlock(mutexPtr);
+
+    int max_remaining_jobs = threads;
+
+    // iterate over alignments
+    while (true) {
+        bytes_read = sam_read1(fp, sam_hdr, b);
+        count_parsed_alignments += 1;
+
+        // if this is not the end of the file
+        if (bytes_read > -1) {
+            strcpy(read_name_new, bam_get_qname(b));
+            if (read_name[0] == '\0') {
+                strcpy(read_name, read_name_new);
+            }
+        }
+        // If read name has changed or file is finished
+        if ((strcmp(read_name_new, read_name) != 0) || (bytes_read <= -1)) {
+            count_parsed_reads += 1;
+            // Check if we have more than one alignment
+            // and also not too many (more than 10) alignments
+            // Secphase currently does not support supplementary alignments
+            // Only one primary alignment should exist per read
+            if ((alignments_len > 1) &&
+                (alignments_len <= 10) &&
+                (ptAlignment_supplementary_count(alignments, alignments_len) == 0) &&
+                (ptAlignment_primary_count(alignments, alignments_len) == 1)) {
+                // add alignments to the work arg
+                // these alignments will be destroyed automatically by
+                // runOnThread() at the end of the job
+                work_arg_t *arg_cp = tpool_shallow_copy_work_arg(arg);
+                arg_cp->alignments = alignments;
+                arg_cp->alignments_len = alignments_len;
+                arg_cp->sam_hdr = sam_hdr;
+
+                // to avoid excessive memory usage limit the number
+                // of the jobs waiting in the pool thread
+                while(true){
+                    if(tm->remaining_cnt < max_remaining_jobs) break;
+                }
+                // Add a new job to the thread pool
+                tpool_add_work(tm, runOneThread, arg_cp);
+            }
+            else{
+                // if the alignments are not passed to runOneThread()
+                // they won't be freed so they have to be destroyed here
+                for (int i = 0; i < alignments_len; i++) {
+                    ptAlignment_destruct(alignments[i]);
+                    alignments[i] = NULL;
+                }
+                free(alignments);
+            }
+            // initialize for new alignments
+            alignments_len = 0;
+            alignments = (ptAlignment**) malloc(11 * sizeof(ptAlignment*));
+            // update read name
+            strcpy(read_name, read_name_new);
+        }
+        if (count_parsed_alignments >= alignment_log_idx * alignment_log_size) {
+            alignment_log_idx += 1;
+            //lock mutex
+            pthread_mutex_lock(mutexPtr);
+            fprintf(stderr,
+                    "[%s] #parsed alignments = %d, #parsed reads = %d, #modifed by phased variants = %d, #modifed by markers = %d\n",
+                    get_timestamp(),
+                    count_parsed_alignments,
+                    count_parsed_reads,
+                    *reads_modified_by_vars,
+                    *reads_modified_by_marker);
+            fflush(stderr);
+            //lock mutex
+            pthread_mutex_unlock(mutexPtr);
+        }
+        if (bytes_read <= -1) break; // file is finished so break
+        if (b->core.flag & BAM_FUNMAP) continue; // unmapped
+        if (alignments_len > 10) continue;
+        alignments[alignments_len] = ptAlignment_construct(b, sam_hdr);
+        alignments_len += 1;
+    }
+
+    // wait until all jobs are finished
+    tpool_wait(tm);
+    // destroy the thread pool
+    tpool_destroy(tm);
+
+    // free memory
+    sam_hdr_destroy(sam_hdr);
+    sam_close(fp);
+    bam_destroy1(b);
+}
+
+
 
 
 
@@ -691,9 +696,9 @@ int main(int argc, char *argv[]) {
                                   &reads_modified_by_vars,
                                   &reads_modified_by_marker,
                                   output_log_file, bam_fo,
-                                  mutexPtr, NULL, 0, flank_margin);
+                                  mutexPtr, NULL, 0, flank_margin, NULL);
 
-    parseAlignmentsAndScatterJobs(arg_temp);
+    parseAlignmentsAndScatterJobs(arg_temp, threads);
 
     fprintf(stderr, "[%s] Number of reads modified by phased variants = %d\n", get_timestamp(),
             reads_modified_by_vars);

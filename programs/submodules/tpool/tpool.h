@@ -51,6 +51,7 @@ typedef struct work_arg_t {
     ptAlignment** alignments;
     int alignments_len;
     int flank_margin;
+    sam_hdr_t *sam_hdr;
 } work_arg_t;
 
 struct tpool {

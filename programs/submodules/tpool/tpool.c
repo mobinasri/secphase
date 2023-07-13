@@ -35,6 +35,7 @@ work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src){
     arg_dest->alignments = arg_src->alignments;
     arg_dest->alignments_len = arg_src->alignments_len;
     arg_dest->flank_margin = arg_src->flank_margin;
+    arg_dest->sam_hdr = arg_src->sam_hdr;
     return arg_dest;
 }
 
@@ -51,7 +52,8 @@ work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_thres
                                   int *reads_modified_by_marker,
                                   FILE *output_log_file,
                                   samFile* bam_fo,
-                                  pthread_mutex_t *mutexPtr, ptAlignment** alignments, int alignments_len, int flank_margin) {
+                                  pthread_mutex_t *mutexPtr, ptAlignment** alignments, int alignments_len,
+                                  int flank_margin, sam_hdr_t *sam_hdr) {
     work_arg_t *arg = malloc(sizeof(work_arg_t));
     arg->baq_flag = baq_flag;
     arg->consensus = consensus;
@@ -80,6 +82,7 @@ work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_thres
     arg->alignments = alignments;
     arg->alignments_len = alignments_len;
     arg->flank_margin = flank_margin;
+    arg->sam_hdr = sam_hdr;
     return arg;
 }
 
