@@ -19,8 +19,8 @@ work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src){
     arg_dest->conf_d = arg_src->conf_d;
     arg_dest->conf_e = arg_src->conf_e;
     arg_dest->conf_b = arg_src->conf_b;
-    arg_dest->inputPath = arg_src->inputPath;
-    arg_dest->fastaPath = arg_src->fastaPath;
+    strcpy(arg_dest->inputPath, arg_src->inputPath);
+    strcpy(arg_dest->fastaPath, arg_src->fastaPath);
     arg_dest->marker_mode = arg_src->marker_mode;
     arg_dest->variant_ref_blocks_per_contig = variant_ref_blocks_per_contig;
     arg_dest->modified_blocks_by_vars_per_contig = arg_src->modified_blocks_by_vars_per_contig;
@@ -64,8 +64,8 @@ work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_thres
     arg->conf_d = conf_d;
     arg->conf_e = conf_e;
     arg->conf_b = conf_b;
-    arg->inputPath = inputPath;
-    arg->fastaPath = fastaPath;
+    strcpy(arg->inputPath, inputPath);
+    strcpy(arg->fastaPath, fastaPath);
     arg->marker_mode = marker_mode;
     arg->variant_ref_blocks_per_contig =variant_ref_blocks_per_contig;
     arg->modified_blocks_by_vars_per_contig = modified_blocks_by_vars_per_contig;
