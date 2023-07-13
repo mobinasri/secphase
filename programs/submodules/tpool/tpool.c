@@ -6,8 +6,42 @@
 // The tpool code is taken from
 // https://nachtimwald.com/2019/04/12/thread-pool-in-c/
 
-work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_t  bam_adr_end,
-                                  bool baq_flag, bool consensus, int indel_threshold, int min_q,
+work_arg_t *tpool_shallow_copy_work_arg(work_arg_t * arg_src){
+    work_arg_t *arg_dest = malloc(sizeof(work_arg_t));
+    arg_dest->thread_idx = arg_src->thread_idx;
+    arg_dest->bam_adr_start = arg_src->bam_adr_start;
+    arg_dest->bam_adr_end = arg_src->bam_adr_end;
+    arg_dest->baq_flag = arg_src->baq_flag;
+    arg_dest->consensus = arg_src->consensus;
+    arg_dest->indel_threshold = arg_src->indel_threshold;
+    arg_dest->min_q = arg_src->min_q;
+    arg_dest->min_score = arg_src->min_score;
+    arg_dest->prim_margin_score = arg_src->prim_margin_score;
+    arg_dest->prim_margin_random = arg_src->prim_margin_random;
+    arg_dest->set_q = arg_src->set_q;
+    arg_dest->conf_d = arg_src->conf_d;
+    arg_dest->conf_e = arg_src->conf_e;
+    arg_dest->conf_b = arg_src->conf_b;
+    arg_dest->inputPath = arg_src->inputPath;
+    arg_dest->fastaPath = arg_src->fastaPath;
+    arg_dest->marker_mode = arg_src->marker_mode;
+    arg_dest->variant_ref_blocks_per_contig = variant_ref_blocks_per_contig;
+    arg_dest->modified_blocks_by_vars_per_contig = arg_src->modified_blocks_by_vars_per_contig;
+    arg_dest->modified_blocks_by_marker_per_contig = arg_src->modified_blocks_by_marker_per_contig;
+    arg_dest->variant_blocks_all_haps_per_contig = arg_src->variant_blocks_all_haps_per_contig;
+    arg_dest->marker_blocks_all_haps_per_contig = arg_src->marker_blocks_all_haps_per_contig;
+    arg_dest->reads_modified_by_vars = arg_src->reads_modified_by_vars;
+    arg_dest->reads_modified_by_marker = arg_src->reads_modified_by_marker;
+    arg_dest->output_log_file = arg_src->output_log_file;
+    arg_dest->bam_fo = arg_src->bam_fo;
+    arg_dest->mutexPtr = arg_src->mutexPtr;
+    arg_dest->alignments = arg_src->alignments;
+    arg_dest->alignments_len = arg_src->alignments_len;
+    arg_dest->flank_margin = arg_src->flank_margin;
+    return arg;
+}
+
+work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_threshold, int min_q,
                                   int min_score, double prim_margin_score, double prim_margin_random, int set_q,
                                   double conf_d, double conf_e, double conf_b, char *inputPath,
                                   char *fastaPath, bool marker_mode,
@@ -20,7 +54,7 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
                                   int *reads_modified_by_marker,
                                   FILE *output_log_file,
                                   samFile* bam_fo,
-                                  pthread_mutex_t *mutexPtr) {
+                                  pthread_mutex_t *mutexPtr, ptAlignment** alignments, int alignments_len, int flank_margin) {
     work_arg_t *arg = malloc(sizeof(work_arg_t));
     arg->thread_idx = thread_idx;
     arg->bam_adr_start = bam_adr_start;
@@ -36,8 +70,8 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
     arg->conf_d = conf_d;
     arg->conf_e = conf_e;
     arg->conf_b = conf_b;
-    strcpy(arg->inputPath, inputPath);
-    strcpy(arg->fastaPath, fastaPath);
+    arg->inputPath = inputPath;
+    arg->fastaPath = fastaPath;
     arg->marker_mode = marker_mode;
     arg->variant_ref_blocks_per_contig =variant_ref_blocks_per_contig;
     arg->modified_blocks_by_vars_per_contig = modified_blocks_by_vars_per_contig;
@@ -49,8 +83,12 @@ work_arg_t *tpool_create_work_arg(int thread_idx, int64_t bam_adr_start,  int64_
     arg->output_log_file = output_log_file;
     arg->bam_fo = bam_fo;
     arg->mutexPtr = mutexPtr;
+    arg->alignments = alignments;
+    arg->alignments_len = alignments_len;
+    arg->flank_margin = flank_margin;
     return arg;
 }
+
 
 static tpool_work_t *tpool_work_create(thread_func_t func, void *arg) {
     tpool_work_t *work;
@@ -105,6 +143,7 @@ static void *tpool_worker(void *arg) {
 
         work = tpool_work_get(tm);
         tm->working_cnt++;
+        tm->remaining_cnt--;
         pthread_mutex_unlock(&(tm->work_mutex));
 
         if (work != NULL) {
@@ -137,6 +176,9 @@ tpool_t *tpool_create(size_t num) {
 
     tm = calloc(1, sizeof(*tm));
     tm->thread_cnt = num;
+
+    tm->working_cnt = 0;
+    tm->remaining_cnt = 0;
 
     pthread_mutex_init(&(tm->work_mutex), NULL);
     pthread_cond_init(&(tm->work_cond), NULL);
@@ -199,6 +241,7 @@ bool tpool_add_work(tpool_t *tm, thread_func_t func, void *arg) {
         tm->work_last = work;
     }
 
+    tm->remaining_cnt++;
     pthread_cond_broadcast(&(tm->work_cond));
     pthread_mutex_unlock(&(tm->work_mutex));
 
