@@ -56,9 +56,6 @@ work_arg_t *tpool_create_work_arg(bool baq_flag, bool consensus, int indel_thres
                                   samFile* bam_fo,
                                   pthread_mutex_t *mutexPtr, ptAlignment** alignments, int alignments_len, int flank_margin) {
     work_arg_t *arg = malloc(sizeof(work_arg_t));
-    arg->thread_idx = thread_idx;
-    arg->bam_adr_start = bam_adr_start;
-    arg->bam_adr_end = bam_adr_end;
     arg->baq_flag = baq_flag;
     arg->consensus = consensus;
     arg->indel_threshold = indel_threshold;
