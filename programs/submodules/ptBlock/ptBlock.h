@@ -62,14 +62,15 @@ void ptBlock_destruct_data(ptBlock *block);
 
 void *ptBlock_copy_data(ptBlock *block);
 
+// the three functions for keeping count data in ptBlock structs
 
-void extend_count_data(ptBlock *block, void *data);
-
-
-void destruct_count_data(ptBlock *block);
+void extend_count_data(void* dest_, void *src_);
 
 
-void *copy_count_data(ptBlock *block);
+void destruct_count_data(void *src_);
+
+
+void *copy_count_data(void *src_);
 
 /* Make a copy of a ptBlock structure
  */

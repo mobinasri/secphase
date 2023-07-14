@@ -49,19 +49,19 @@ void *ptBlock_copy_data(ptBlock *block) {
 }
 
 
-void extend_int_data(void *a_, void *b_){
-    int* a = a_;
-    int* b = b_;
-    *a += *b;
+void extend_count_data(void *dest_, void *src_){
+    int* dest = dest_;
+    int* src = src_;
+    *dest += *src;
 }
 
 
-void destruct_int_data(void* src){
+void destruct_count_data(void* src){
     free(src);
 }
 
 
-void *copy_int_data(void* src_){
+void *copy_count_data(void* src_){
     int* src = src_;
     int* dest = malloc(sizeof(int));
     *dest = *src;
