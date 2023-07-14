@@ -415,6 +415,23 @@ stHash *ptBlock_merge_blocks_per_contig(stHash *blocks_per_contig,
 }
 
 
+stHash *ptBlock_merge_blocks_per_contig_by_rf(stHash *blocks_per_contig) {
+    return ptBlock_merge_blocks_per_contig(blocks_per_contig, ptBlock_get_rfs,
+                                              ptBlock_get_rfe,
+                                              ptBlock_set_rfe);
+}
+
+stHash *ptBlock_merge_blocks_per_contig_by_rd_f(stHash *blocks_per_contig) {
+    return ptBlock_merge_blocks_per_contig(blocks_per_contig, ptBlock_get_rds_f,
+                                              ptBlock_get_rde_f,
+                                              ptBlock_set_rde_f);
+}
+
+stHash *ptBlock_merge_blocks_per_contig_by_sq(stHash *blocks_per_contig) {
+    return ptBlock_merge_blocks_per_contig(blocks_per_contig, ptBlock_get_sqs,
+                                              ptBlock_get_sqe,
+                                              ptBlock_set_sqe);
+
 stHash *ptBlock_merge_blocks_per_contig_v2(stHash *blocks_per_contig,
                                         int (*get_start)(ptBlock *), int (*get_end)(ptBlock *),
                                            void (*set_start)(ptBlock *, int), void (*set_end)(ptBlock *, int)) {
