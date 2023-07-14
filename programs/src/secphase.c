@@ -56,17 +56,17 @@ void print_alignment_scores(ptAlignment **alignments, int alignments_len, int be
     fflush(output_log_file);
 }
 
-void merge_and_save_blocks(stHash *blocks_per_contig, char *info_str, char *bed_path) {
+void merge_and_save_blocks(stHash *blocks_per_contig, char *info_str, char *bed_path, bool print_count_data) {
 
     // sort and merge modified blocks
     ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
-    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf_v2(blocks_per_contig);
     fprintf(stderr, "[%s] Total length of %s: %d.\n", get_timestamp(), info_str,
             ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
     fprintf(stderr, "[%s] Total number of %s: %d.\n", get_timestamp(), info_str,
             ptBlock_get_total_number(merged_blocks_per_contig));
 
-    ptBlock_save_in_bed(merged_blocks_per_contig, bed_path);
+    ptBlock_save_in_bed(merged_blocks_per_contig, bed_path, print_count_data);
     fprintf(stderr, "[%s] %s are saved in %s.\n", get_timestamp(), info_str, bed_path);
     stHash_destruct(merged_blocks_per_contig);
 }
@@ -133,8 +133,8 @@ void *runOneThread(void *arg_) {
                                    output_log_file);
             // add modified blocks
             int primary_idx = get_primary_index(alignments, alignments_len);
-            ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx]);
-            ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx]);
+            ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[primary_idx], true);
+            ptBlock_add_alignment(modified_blocks_by_vars_per_contig, alignments[best_idx], true);
             // add variant blocks
             ptBlock_add_blocks_by_contig(variant_blocks_all_haps_per_contig,
                                          alignments[primary_idx]->contig,
@@ -200,8 +200,8 @@ void *runOneThread(void *arg_) {
                                    output_log_file);
             // add modified blocks based on modified read coordinates
             int primary_idx = get_primary_index(alignments, alignments_len);
-            ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx]);
-            ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx]);
+            ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[primary_idx], true);
+            ptBlock_add_alignment(modified_blocks_by_marker_per_contig, alignments[best_idx], true);
             // add marker blocks
             ptMarker_add_marker_blocks_by_contig(marker_blocks_all_haps_per_contig,
                                                  alignments[primary_idx]->contig,
@@ -713,22 +713,22 @@ int main(int argc, char *argv[]) {
 
     snprintf(bed_path, 1000, "%s/%s.modified_read_blocks.variants.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_vars_per_contig, "read blocks modified by phased variants",
-                          bed_path);
+                          bed_path, true);
 
     snprintf(bed_path, 1000, "%s/%s.modified_read_blocks.markers.bed", dirPath, prefix);
     merge_and_save_blocks(modified_blocks_by_marker_per_contig, "read blocks modified by markers",
-                          bed_path);
+                          bed_path, true);
 
     // save the variant and marker blocks
     snprintf(bed_path, 1000, "%s/%s.variant_blocks.bed", dirPath, prefix);
     merge_and_save_blocks(variant_blocks_all_haps_per_contig,
                           "projected variant blocks on all haplotypes",
-                          bed_path);
+                          bed_path, false);
 
     snprintf(bed_path, 1000, "%s/%s.marker_blocks.bed", dirPath, prefix);
     merge_and_save_blocks(marker_blocks_all_haps_per_contig,
                           "projected marker blocks on all haplotypes",
-                          bed_path);
+                          bed_path,false);
 
 
     fclose(output_log_file);
