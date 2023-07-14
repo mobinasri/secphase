@@ -284,7 +284,7 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
              *                s2       e2
              */
             if(e1 < s2) {
-                b_merged = ptBlock_copy(b1)
+                b_merged = ptBlock_copy(b1);
                 stList_append(blocks_merged_finalized, b_merged);
             }
             else if (s1 <= s2){
@@ -540,7 +540,7 @@ void ptBlock_save_in_bed(stHash *blocks_per_contig, char* bed_path, bool print_c
             // TODO: experiment if it can help to output these coordinates
             if(block->rfe < block->rfs) continue;
             if(print_count_data) {
-                fprintf(fp, "%s\t%d\t%d\t%d\n", contig, block->rfs, block->rfe + 1, *(block->data)); // end should be 1-based in BED
+                fprintf(fp, "%s\t%d\t%d\t%d\n", contig, block->rfs, block->rfe + 1, *((int*)block->data)); // end should be 1-based in BED
             }else{
                 fprintf(fp, "%s\t%d\t%d\n", contig, block->rfs, block->rfe + 1); // end should be 1-based in BED
             }
