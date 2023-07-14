@@ -60,7 +60,7 @@ void merge_and_save_blocks(stHash *blocks_per_contig, char *info_str, char *bed_
 
     // sort and merge modified blocks
     ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
-    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf_v2(blocks_per_contig);
+    stHash *merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
     fprintf(stderr, "[%s] Total length of %s: %d.\n", get_timestamp(), info_str,
             ptBlock_get_total_length_by_rf(merged_blocks_per_contig));
     fprintf(stderr, "[%s] Total number of %s: %d.\n", get_timestamp(), info_str,
