@@ -259,6 +259,10 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
     ptBlock *b2 = NULL;
     ptBlock *b1 = NULL;
     ptBlock *b_merged = NULL;
+    int s1;
+    int e1;
+    int s2;
+    int e2;
     for (int i = 0; i < stList_length(blocks); i++) {
         b2 = stList_get(blocks, i);
         //printf("%d\t%d\n", b->rds_f, b->rde_f);
@@ -267,14 +271,14 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
             stList_append(blocks_merged_ongoing, b_merged);
             continue;
         }
-        int e2 = get_end(b2);
-        int s2 = get_start(b2);
+        e2 = get_end(b2);
+        s2 = get_start(b2);
         blocks_merged_temp = blocks_merged_ongoing;
         blocks_merged_ongoing = stList_construct3(0, ptBlock_destruct);
         for (int j = 0; j < stList_length(blocks_merged_temp); j++) {
             b1 = stList_get(blocks_merged_temp, j);
-            int e1 = get_end(b1);
-            int s1 = get_start(b1);
+            e1 = get_end(b1);
+            s1 = get_start(b1);
             /*
              * finalized:
              *
@@ -373,10 +377,16 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
                 *        s2       e2
                 */
 
-                ptBlock *b_merged = ptBlock_copy(b1);
+                b_merged = ptBlock_copy(b1);
                 set_start(b_merged, e2 + 1);
                 stList_append(blocks_merged_ongoing, b_merged);
              }
+        }
+        // add the last non-overlapping block
+        if (max(e1, s2) < e2) {
+            b_merged = ptBlock_copy(b2);
+            set_start(b_merged, max(e1, s2) + 1);
+            stList_append(blocks_merged_ongoing, b_merged);
         }
         // destruct the temporary blocks
         stList_destruct(blocks_merged_temp);
