@@ -233,7 +233,7 @@ stList *ptBlock_merge_blocks(stList *blocks,
             // Initiate a new merged block
             b_merged = ptBlock_copy(b);
         } else { //there is overlap
-            set_end(b_merged, get_end(b)); // extend end pos of the merged block
+            set_end(b_merged, max(get_end(b_merged), get_end(b))); // extend end pos of the merged block
             if (b->data != NULL) {
                 // add the data of the new block to the merged block
                 ptBlock_extend_data(b_merged, b->data);
