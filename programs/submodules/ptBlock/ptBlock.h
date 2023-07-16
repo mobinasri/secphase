@@ -43,6 +43,11 @@ typedef struct {
  */
 ptBlock *ptBlock_construct(int rfs, int rfe, int sqs, int sqe, int rds_f, int rde_f);
 
+/* Construct a ptBlock structure with count
+ * /
+ptBlock *ptBlock_construct_with_count(int rfs, int rfe, int sqs, int sqe, int rds_f, int rde_f, int count);
+
+int ptBlock_get_count(ptBlock* block);
 
 /* Set data and the related functions in a ptBlock structure.
  * It also receives three functions

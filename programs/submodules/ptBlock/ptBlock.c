@@ -16,6 +16,28 @@ ptBlock *ptBlock_construct(int rfs, int rfe, int sqs, int sqe, int rds_f, int rd
     return block;
 }
 
+ptBlock *ptBlock_construct_with_count(int rfs, int rfe, int sqs, int sqe, int rds_f, int rde_f, int count) {
+    ptBlock *block = malloc(sizeof(ptBlock));
+    block->rfs = rfs;
+    block->rfe = rfe;
+    block->sqs = sqs;
+    block->sqe = sqe;
+    block->rds_f = rds_f;
+    block->rde_f = rde_f;
+    block->data = NULL;
+    block->destruct_data = free;
+    block->copy_data = NULL;
+    block->extend_data = NULL;
+    int* data = malloc(sizeof(int));
+    *data = count;
+    ptBlock_set_data(block, data, destruct_count_data, copy_count_data, extend_count_data);
+    return block;
+}
+
+int ptBlock_get_count(ptBlock* block){
+    int* count = (int*) block->data;
+    return *count;
+}
 
 void ptBlock_set_data(ptBlock *block, void *data, void (*destruct_data)(void *), void *(*copy_data)(void *),
                       void (*extend_data)(void *, void *)) {
