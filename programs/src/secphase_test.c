@@ -216,7 +216,7 @@ bool test_mergingBlocksWithCount_v2(){
         allPassed &= ctg1_merged_blocks_count[i] == ptBlock_get_count(ctg1_merged_block);
     }
 
-    for(int i =0; i < 6; i ++){
+    for(int i =0; i < 7; i ++){
         ptBlock* ctg2_merged_block = stList_get(ctg2_merged_blocks, i);
 
         allPassed &= ctg2_merged_blocks_start[i] == ctg2_merged_block->rfs;
