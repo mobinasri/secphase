@@ -80,6 +80,72 @@ bool test_sortingBlocks(){
     return allPassed;
 }
 
+bool test_mergingBlocksWithoutCount(){
+    stHash* blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+                                                  (void (*)(void *)) stList_destruct);
+
+    char ctg1_name[10] = "ctg1";
+    char ctg2_name[10] = "ctg2";
+
+    // create list of unsorted blocks
+
+    stList* ctg1_blocks = stList_construct3(0, ptBlock_destruct);
+    stList* ctg2_blocks = stList_construct3(0, ptBlock_destruct);
+
+    stList_append(ctg1_blocks, ptBlock_construct(30, 50, -1, -1, -1, -1));
+    stList_append(ctg1_blocks, ptBlock_construct(5, 6, -1, -1, -1, -1));
+    stList_append(ctg1_blocks, ptBlock_construct(10, 20, -1, -1, -1, -1));
+    stList_append(ctg1_blocks, ptBlock_construct(0, 10, -1, -1, -1, -1));
+    stList_append(ctg1_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
+
+    stList_append(ctg1_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
+    stList_append(ctg2_blocks, ptBlock_construct(5, 15, -1, -1, -1, -1));
+    stList_append(ctg2_blocks, ptBlock_construct(10, 10, -1, -1, -1, -1));
+    stList_append(ctg2_blocks, ptBlock_construct(8, 8, -1, -1, -1, -1));
+    stList_append(ctg2_blocks, ptBlock_construct(0, 10, -1, -1, -1, -1));
+
+
+    // add blocks to the table
+    stHash_insert(blocks_per_contig, copyString(ctg1_name), ctg1_blocks);
+    stHash_insert(blocks_per_contig, copyString(ctg2_name), ctg2_blocks);
+
+    // sort blocks by rfs
+    ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
+
+    // merge blocks by rfs
+    stHash* merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+
+    // get merged blocks
+    stList* ctg1_merged_blocks = stHash_search(merged_blocks_per_contig, ctg1_name);
+    stList* ctg2_merged_blocks = stHash_search(merged_blocks_per_contig, ctg2_name);
+
+
+    // truth
+    int ctg1_merged_blocks_start[2] = {0, 30};
+    int ctg1_merged_blocks_end[2] = {20, 60};
+
+    int ctg2_merged_blocks_start[2] = {0, 50};
+    int ctg2_merged_blocks_end[2] = {15, 60};
+
+
+    bool allPassed = true;
+    for(int i =0; i < 2; i ++){
+        ptBlock* ctg1_merged_block = stList_get(ctg1_merged_blocks, i);
+        ptBlock* ctg2_merged_block = stList_get(ctg2_merged_blocks, i);
+
+        allPassed &= ctg1_merged_blocks_start[i] == ctg1_merged_block->rfs;
+        allPassed &= ctg1_merged_blocks_end[i] == ctg1_merged_block->rfe;
+
+        allPassed &= ctg2_merged_blocks_start[i] == ctg2_merged_block->rfs;
+        allPassed &= ctg2_merged_blocks_end[i] == ctg2_merged_block->rfe;
+    }
+
+    stHash_destruct(blocks_per_contig);
+    stHash_destruct(merged_blocks_per_contig);
+
+    return allPassed;
+}
+
 
 
 
@@ -87,4 +153,6 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "Start testing ....\n");
     fprintf(stdout, "Test sorting blocks:");
     fprintf(stdout, test_sortingBlocks() ? "\x1B[32m PASSED \x1B[0m\n" : "\x1B[31m FAILED \x1B[0m\n");
+    fprintf(stdout, "Test merging blocks without count:");
+    fprintf(stdout, test_mergingBlocksWithoutCount() ? "\x1B[32m PASSED \x1B[0m\n" : "\x1B[31m FAILED \x1B[0m\n");
 }
