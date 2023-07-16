@@ -405,7 +405,7 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
              }
         }
         // add the last non-overlapping block
-        if (max(e1 + 1, s2) <= e2) {
+        if (max(e1 + 1, s2) <= e2){
             b_merged = ptBlock_copy(b2);
             set_start(b_merged, max(e1 + 1, s2));
             stList_append(blocks_merged_ongoing, b_merged);
