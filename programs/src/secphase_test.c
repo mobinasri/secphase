@@ -74,6 +74,9 @@ bool test_sortingBlocks(){
         allPassed &= ctg1_sorted_start[i] == ctg1_block->rfs;
         allPassed &= ctg2_sorted_start[i] == ctg2_block->rfs;
     }
+
+    stHash_destruct(blocks_per_contig);
+
     return allPassed;
 }
 
