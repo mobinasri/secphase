@@ -45,7 +45,7 @@ bool test_sortingBlocks(){
     stList_append(ctg1_blocks, ptBlock_construct(0, 10, -1, -1, -1, -1));
     stList_append(ctg1_blocks, ptBlock_construct(15, 60, -1, -1, -1, -1));
 
-    stList_append(ctg1_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
+    stList_append(ctg2_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
     stList_append(ctg2_blocks, ptBlock_construct(5, 15, -1, -1, -1, -1));
     stList_append(ctg2_blocks, ptBlock_construct(10, 10, -1, -1, -1, -1));
     stList_append(ctg2_blocks, ptBlock_construct(8, 8, -1, -1, -1, -1));
@@ -98,7 +98,7 @@ bool test_mergingBlocksWithoutCount(){
     stList_append(ctg1_blocks, ptBlock_construct(0, 10, -1, -1, -1, -1));
     stList_append(ctg1_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
 
-    stList_append(ctg1_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
+    stList_append(ctg2_blocks, ptBlock_construct(50, 60, -1, -1, -1, -1));
     stList_append(ctg2_blocks, ptBlock_construct(5, 15, -1, -1, -1, -1));
     stList_append(ctg2_blocks, ptBlock_construct(10, 10, -1, -1, -1, -1));
     stList_append(ctg2_blocks, ptBlock_construct(8, 8, -1, -1, -1, -1));
