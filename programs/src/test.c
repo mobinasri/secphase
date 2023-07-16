@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 }
 
 bool test_sortingBlocks(){
-    stHash* blocks_per_contig = = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
+    stHash* blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                     (void (*)(void *)) stList_destruct);
 
     char ctg1_name[10] = "ctg1";
