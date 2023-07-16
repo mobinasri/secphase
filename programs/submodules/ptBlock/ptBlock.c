@@ -382,14 +382,15 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
                  *       [----******]
                  *        s2       e2
                  */
-                b_merged = ptBlock_copy(b1);
-                set_end(b_merged, e2);
-                if (b2->data != NULL) {
-                    // add the data of the new block to the merged block
-                    ptBlock_extend_data(b_merged, b2->data);
+                if(s1 <= e2) {
+                    b_merged = ptBlock_copy(b1);
+                    set_end(b_merged, e2);
+                    if (b2->data != NULL) {
+                        // add the data of the new block to the merged block
+                        ptBlock_extend_data(b_merged, b2->data);
+                    }
+                    stList_append(blocks_merged_ongoing, b_merged);
                 }
-                stList_append(blocks_merged_ongoing, b_merged);
-
                 /*
                 * ongoing:
                 *
@@ -400,7 +401,7 @@ stList *ptBlock_merge_blocks_v2(stList *blocks,
                 */
 
                 b_merged = ptBlock_copy(b1);
-                set_start(b_merged, e2 + 1);
+                set_start(b_merged, max(e2 + 1, s1));
                 stList_append(blocks_merged_ongoing, b_merged);
              }
         }
