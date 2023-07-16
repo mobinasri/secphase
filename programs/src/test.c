@@ -27,13 +27,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
-int main(int argc, char *argv[]) {
-    fprintf(stdout, "Start testing ....\n");
-    fprintf(stdout, "Test sorting blocks:");
-    fprintf(stdout, test_sortingBlocks() ? "\x1B[32m PASSED \x1B[0m\n" : "\x1B[31m FAILED \x1B[0m\n");
-}
-
 bool test_sortingBlocks(){
     stHash* blocks_per_contig = stHash_construct3(stHash_stringKey, stHash_stringEqualKey, NULL,
                                                     (void (*)(void *)) stList_destruct);
@@ -82,4 +75,13 @@ bool test_sortingBlocks(){
         allPassed &= ctg2_sorted_start[i] == ctg2_block->rfs;
     }
     return allPassed;
+}
+
+
+
+
+int main(int argc, char *argv[]) {
+    fprintf(stdout, "Start testing ....\n");
+    fprintf(stdout, "Test sorting blocks:");
+    fprintf(stdout, test_sortingBlocks() ? "\x1B[32m PASSED \x1B[0m\n" : "\x1B[31m FAILED \x1B[0m\n");
 }
