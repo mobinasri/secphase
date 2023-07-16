@@ -203,7 +203,7 @@ bool test_mergingBlocksWithCount_v2(){
     int ctg2_merged_blocks_count[7] = {1, 2, 3, 2, 3, 1, 1};
 
     // check number of merged blocks
-    if (stList_length(ctg1_merged_blocks) != 8 || stList_length(ctg2_merged_blocks->rfe) != 7){
+    if (stList_length(ctg1_merged_blocks) != 8 || stList_length(ctg2_merged_blocks) != 7){
         return false;
     }
 
