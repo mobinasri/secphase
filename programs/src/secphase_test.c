@@ -196,14 +196,14 @@ bool test_mergingBlocksWithCount_v2(){
     // truth
     int ctg1_merged_blocks_start[8] = {0,5,7,10,11,30,50,51};
     int ctg1_merged_blocks_end[8] = {4,6,9,10,20,49,50,60};
-    int ctg1_merged_blocks_count[8] = {1,2,1,2,1,1,2,1}
+    int ctg1_merged_blocks_count[8] = {1,2,1,2,1,1,2,1};
 
     int ctg2_merged_blocks_start[7] = {0,5,8,9,10,11, 50};
     int ctg2_merged_blocks_end[7] = {4,7,8,9,10,15, 60};
     int ctg2_merged_blocks_count[7] = {1, 2, 3, 2, 3, 1, 1};
 
     // check number of merged blocks
-    if (stList_length(ctg1_merged_blocks) != 8 || stList_length(ctg2_merged_block->rfe) != 7){
+    if (stList_length(ctg1_merged_blocks) != 8 || stList_length(ctg2_merged_blocks->rfe) != 7){
         return false;
     }
 
