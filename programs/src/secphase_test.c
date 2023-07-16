@@ -186,7 +186,7 @@ bool test_mergingBlocksWithCount_v2(){
     ptBlock_sort_stHash_by_rfs(blocks_per_contig); // sort in place
 
     // merge blocks by rfs
-    stHash* merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf(blocks_per_contig);
+    stHash* merged_blocks_per_contig = ptBlock_merge_blocks_per_contig_by_rf_v2(blocks_per_contig);
 
     // get merged blocks
     stList* ctg1_merged_blocks = stHash_search(merged_blocks_per_contig, ctg1_name);
