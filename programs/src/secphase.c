@@ -224,6 +224,7 @@ void *runOneThread(void *arg_) {
     }
     free(alignments);
     free(arg);
+    fai_destroy(fai);
 }
 
 void parseAlignmentsAndScatterJobs(void *arg_, int threads) {
