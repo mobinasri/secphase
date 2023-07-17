@@ -446,7 +446,7 @@ int main(int argc, char *argv[]) {
     bool marker_mode = true;
     bool write_bam = false;
     int flank_margin = 500;
-    int threads = 1;
+    int threads = 4;
     (program = strrchr(argv[0], '/')) ? ++program : (program = argv[0]);
     while (~(c = getopt_long(argc, argv, "i:p:P:G:o:f:v:qd:e:b:n:r:m:ct:s:B:g:@:wxyMh", long_options, NULL))) {
         switch (c) {
@@ -595,7 +595,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr,
                         "         --flankMargin, -F         Write an output bam file with the base qualities modified by BAQ\n");
                 fprintf(stderr,
-                        "         --threads, -@         Number of threads  (For using more than one threads secphase_index should be run before running secphase) [Default: 1]\n");
+                        "         --threads, -@         Number of threads  (For using more than one threads secphase_index should be run before running secphase) [Default: 4]\n");
                 return 1;
         }
     }
