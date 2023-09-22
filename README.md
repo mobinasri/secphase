@@ -93,13 +93,12 @@ Options:
          --minVariantMargin, -g         Minimum margin for creating blocks around phased variants [Default: 50]
          --minGQ, -G         Minimum genotype quality of the phased variants [Default: 10]
          --writeBam, -w         Write an output bam file with the base qualities modified by BAQ
-         --threads, -@         Number of threads  (For using more than one threads secphase_index should be run before running secphase) [Default: 4]
+         --threads, -@         Number of threads [Default: 4]
 ```
 Some notes:
 
 - By default Secphase will not calculate BAQ for markers. For enabling BAQ the parameteres `--baq` and `--consensus` have to be set. For HiFi reads preset `--hifi` and for ONT `--ont` is recommended. These presets will enable `--baq --consensus` automatically. 
 - The input bam file must be sorted **by read name and contain the** `cs` **tag**. 
-- The sorted bam file should be indexed with `secphase_index` prior to running `secphase`; it will create an index file with the suffix `.secphase.index` which is necessary for multi-threading. 
 
 In summary given a bam file (usually sorted by reference position) you can run these lines:
 
