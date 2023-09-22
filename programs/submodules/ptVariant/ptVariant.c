@@ -958,7 +958,7 @@ void *ptVariant_destruct_stList(void *vars_) {
 // variants should be sorted by contig and pos
 // blocks should be sorted by rfs
 stList *ptVariant_subset_stList(stList *variants, stHash *blocks_per_contig) {
-    char contig[50];
+    char contig[200];
     contig[0] = '\0';
     int j = 0;
     ptBlock *block;
