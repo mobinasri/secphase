@@ -334,7 +334,7 @@ stHash *extract_variant_ref_blocks(stList *variants, const faidx_t *fai, int min
         if (i == 0 || strcmp(variant->contig, pre_variant->contig) != 0) {
             // make a list of blocks for the new contig
             blocks = stList_construct3(0, ptBlock_destruct);
-            char *contig = malloc(50);
+            char *contig = malloc(200);
             strcpy(contig, variant->contig);
             contig_len = faidx_seq_len64(fai, contig);
             // add the blocks list to the hash table with the key equal to contig name
