@@ -25,12 +25,12 @@ task secphaseEndToEnd {
         File? variantBed
         String secphaseOptions = "--hifi"
         String? correctBamOptions
-        String version = "v0.4.3"
+        String version = "v0.4.4"
         # runtime configurations
         Int memSize=16
         Int threadCount=8
         Int diskSize=1024
-        String dockerImage="mobinasri/secphase:v0.4.3"
+        String dockerImage="mobinasri/secphase:v0.4.4"
         Int preemptible=2
         String zones="us-west2-a"
     }
